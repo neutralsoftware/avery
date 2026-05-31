@@ -1,0 +1,46 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: Build Avery ISO
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            lld \
+            cmake \
+            ninja-build \
+            xorriso \
+            nasm \
+            git \
+            make \
+            autoconf \
+            automake \
+            pkg-config \
+            mtools
+
+      - name: Configure
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_TOOLCHAIN_FILE=cmake/x86_64-kernel-toolchain.cmake
+
+      - name: Build ISO
+        run: |
+          cmake --build build --target iso
+
+      - name: Verify artifacts
+        run: |
+          test -f build/avery.elf
+          test -f build/avery.iso
