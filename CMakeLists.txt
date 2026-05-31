@@ -69,10 +69,10 @@ add_custom_command(
         ${LIMINE_BIN}/limine-bios.sys
         ${LIMINE_BIN}/limine
         COMMAND /bin/sh -c
-        "if [ ! -d '${LIMINE_DIR}/.git' ]; then git clone --depth=1 --branch v12.3.2 https://github.com/limine-bootloader/limine.git '${LIMINE_DIR}'; fi"
+        "if [ ! -d '${LIMINE_DIR}/.git' ]; then rm -rf '${LIMINE_DIR}' && git clone --depth=1 --branch v12.3.2 https://github.com/limine-bootloader/limine.git '${LIMINE_DIR}'; fi"
         COMMAND ${CMAKE_COMMAND} -E chdir ${LIMINE_DIR} ./bootstrap
         COMMAND ${CMAKE_COMMAND} -E chdir ${LIMINE_DIR} ./configure --enable-bios --enable-bios-cd
-        COMMAND ${CMAKE_COMMAND} -E chdir ${LIMINE_DIR} gmake
+        COMMAND ${CMAKE_COMMAND} -E chdir ${LIMINE_DIR} make
         COMMAND ${CMAKE_COMMAND} -E touch ${LIMINE_BIN}/limine-bios-cd.bin
         VERBATIM
 )
@@ -83,6 +83,8 @@ add_custom_target(limine
         ${LIMINE_BIN}/limine-bios.sys
         ${LIMINE_BIN}/limine
 )
+
+add_dependencies(avery_objects limine)
 
 add_custom_command(
         OUTPUT ${ISO_FILE}

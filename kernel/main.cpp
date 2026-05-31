@@ -16,22 +16,12 @@ static volatile uint64_t limine_requests_start_marker[] = LIMINE_REQUESTS_START_
 __attribute__((used, section(".limine_requests_end")))
 static volatile uint64_t limine_requests_end_marker[] = LIMINE_REQUESTS_END_MARKER;
 
-static void putc(char c) {
-    asm volatile("outb %0, $0xe9" : : "a"(c));
-}
-
-static void print(const char* s) {
-    while (*s) putc(*s++);
-}
-
 extern "C" [[noreturn]] void _start() {
     if (LIMINE_BASE_REVISION_SUPPORTED(limine_base_revision) == false) {
         while (true) {
             asm("hlt");
         }
     }
-
-    print("Framebuffer acquired\n");
 
     if (framebuffer_request.response == nullptr
         || framebuffer_request.response->framebuffer_count < 1) {
