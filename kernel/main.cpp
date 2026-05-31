@@ -1,5 +1,7 @@
 #include <limine.h>
 
+#include "core/regs.h"
+#include "graphics/framebuffer.h"
 #include "io/serial.h"
 
 __attribute__((used, section(".limine_requests")))
@@ -19,6 +21,8 @@ __attribute__((used, section(".limine_requests_end")))
 static volatile uint64_t limine_requests_end_marker[] = LIMINE_REQUESTS_END_MARKER;
 
 extern "C" [[noreturn]] void _start() {
+    regs::enableSSE();
+
     io::serialWrite("Hello, World!");
 
     if (LIMINE_BASE_REVISION_SUPPORTED(limine_base_revision) == false) {
@@ -27,23 +31,8 @@ extern "C" [[noreturn]] void _start() {
         }
     }
 
-    if (framebuffer_request.response == nullptr
-        || framebuffer_request.response->framebuffer_count < 1) {
-        while (true) {
-            asm("hlt");
-        }
-    }
-
-    struct limine_framebuffer* framebuffer = framebuffer_request.response->framebuffers[0];
-
-    volatile uint32_t* fb_ptr = static_cast<uint32_t*>(framebuffer->address);
-    for (unsigned int y = 0; y < framebuffer->height; y++) {
-        for (unsigned int x = 0; x < framebuffer->width; x++) {
-            uint32_t nX = x * 255 / framebuffer->width;
-            uint32_t nY = y * 255 / framebuffer->height;
-            fb_ptr[y * (framebuffer->pitch / 4) + x] = (nY << 8) | nX;
-        }
-    }
+    Framebuffer framebuffer = Framebuffer::createFromLimineRequest(framebuffer_request);
+    framebuffer.paintRectangle({12, 12}, {120, 120}, Color(255, 255, 255, 255));
 
     while (true) {
         asm("hlt");

@@ -23,5 +23,26 @@ using i64 = long long;
 
 using string = const char*;
 
+template <typename T>
+struct Tuple {
+    T a;
+    T b;
+
+    Tuple<T>(T a, T b) : a(a), b(b) {
+    }
+
+    T first() { return a; }
+    T second() { return b; }
+};
+
+template <typename T>
+Tuple(T, T) -> Tuple<T>;
+
+struct Color {
+    int r; // from 0-255
+    int g;
+    int b;
+    int a;
+};
 
 #endif //AVERY_TYPES_H
