@@ -1,5 +1,7 @@
 #include <limine.h>
 
+#include "io/serial.h"
+
 __attribute__((used, section(".limine_requests")))
 static volatile uint64_t limine_base_revision[] = LIMINE_BASE_REVISION(6);
 
@@ -17,6 +19,8 @@ __attribute__((used, section(".limine_requests_end")))
 static volatile uint64_t limine_requests_end_marker[] = LIMINE_REQUESTS_END_MARKER;
 
 extern "C" [[noreturn]] void _start() {
+    io::serialWrite("Hello, World!");
+
     if (LIMINE_BASE_REVISION_SUPPORTED(limine_base_revision) == false) {
         while (true) {
             asm("hlt");
