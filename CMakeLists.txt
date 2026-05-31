@@ -12,6 +12,8 @@ set(LIMINE_DIR ${CMAKE_BINARY_DIR}/limine)
 
 file(GLOB_RECURSE KERNEL_SOURCES CONFIGURE_DEPENDS
         kernel/*.cpp
+        include/*.h
+        include/*.hpp
 )
 
 find_program(LLD_LINKER NAMES ld.lld REQUIRED)
@@ -52,7 +54,9 @@ add_custom_command(
         -T ${CMAKE_SOURCE_DIR}/linker.ld
         -o ${KERNEL_ELF}
         $<TARGET_OBJECTS:avery_objects>
-        DEPENDS avery_objects ${CMAKE_SOURCE_DIR}/linker.ld
+        DEPENDS
+        $<TARGET_OBJECTS:avery_objects>
+        ${CMAKE_SOURCE_DIR}/linker.ld
         COMMAND_EXPAND_LISTS
         VERBATIM
 )
