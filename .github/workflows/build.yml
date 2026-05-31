@@ -28,7 +28,14 @@ jobs:
             autoconf \
             automake \
             pkg-config \
-            mtools
+            mtools \
+            llvm
+
+      - name: Check LLVM tools
+        run: |
+          which clang
+          which ld.lld
+          which llvm-objcopy
 
       - name: Configure
         run: |
