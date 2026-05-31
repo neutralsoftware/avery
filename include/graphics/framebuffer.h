@@ -9,6 +9,7 @@
 
 #ifndef AVERY_FRAMEBUFFER_H
 #define AVERY_FRAMEBUFFER_H
+#include "graphicsTypes.h"
 #include "../types.h"
 
 struct limine_framebuffer_request;
@@ -20,6 +21,7 @@ public:
 
     void setColor(Tuple<u64> position, Color color) const;
     void paintRectangle(Tuple<u64> start, Tuple<u64> end, Color color) const;
+    void drawCharacter(Tuple<u64> pos, Color fg, Color bg, char c, float scaleBy = 1.0) const;
 
 private:
     volatile u32* fb_ptr = nullptr;

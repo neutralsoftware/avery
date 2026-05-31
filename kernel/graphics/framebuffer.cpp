@@ -8,7 +8,11 @@
 */
 
 #include <graphics/framebuffer.h>
+#include <graphics/vgaFont.h>
 #include <limine.h>
+
+#include "graphics/graphicsTypes.h"
+#include "types.h"
 
 Framebuffer Framebuffer::createFromLimineRequest(
     volatile limine_framebuffer_request& request
@@ -75,6 +79,50 @@ void Framebuffer::paintRectangle(Tuple<u64> start, Tuple<u64> end, Color color) 
     for (u64 y = startY; y < endY; y++) {
         for (u64 x = startX; x < endX; x++) {
             setColor(Tuple<u64>{x, y}, color);
+        }
+    }
+}
+
+void Framebuffer::drawCharacter(
+    Tuple<u64> pos,
+    Color fg,
+    Color bg,
+    char c,
+    float scaleBy
+) const {
+    if (scaleBy < 1.0f) {
+        scaleBy = 1.0f;
+    }
+
+    const u64 scale = static_cast<u64>(scaleBy);
+
+    if (c < FONT_FIRST || c > FONT_LAST) {
+        c = '?';
+    }
+
+    const u8* glyph = font8x16[c - FONT_FIRST];
+
+    for (u64 row = 0; row < FONT_HEIGHT; row++) {
+        u8 bits = glyph[row];
+
+        for (u64 col = 0; col < FONT_WIDTH; col++) {
+            Color color = bg;
+
+            if (bits & (0x80 >> col)) {
+                color = fg;
+            }
+
+            const u64 pixelX = pos.first() + col * scale;
+            const u64 pixelY = pos.second() + row * scale;
+
+            for (u64 sy = 0; sy < scale; sy++) {
+                for (u64 sx = 0; sx < scale; sx++) {
+                    setColor({
+                                 pixelX + sx,
+                                 pixelY + sy
+                             }, color);
+                }
+            }
         }
     }
 }

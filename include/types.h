@@ -38,11 +38,5 @@ struct Tuple {
 template <typename T>
 Tuple(T, T) -> Tuple<T>;
 
-struct Color {
-    int r; // from 0-255
-    int g;
-    int b;
-    int a;
-};
 
 #endif //AVERY_TYPES_H

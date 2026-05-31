@@ -32,7 +32,7 @@ extern "C" [[noreturn]] void _start() {
     }
 
     Framebuffer framebuffer = Framebuffer::createFromLimineRequest(framebuffer_request);
-    framebuffer.paintRectangle({12, 12}, {120, 120}, Color(255, 255, 255, 255));
+    framebuffer.drawCharacter({10, 10}, Color::red, Color::black, 'A', 10.0);
 
     while (true) {
         asm("hlt");
