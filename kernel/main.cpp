@@ -32,7 +32,8 @@ extern "C" [[noreturn]] void _start() {
     }
 
     Framebuffer framebuffer = Framebuffer::createFromLimineRequest(framebuffer_request);
-    framebuffer.drawCharacter({10, 10}, Color::red, Color::black, 'A', 10.0);
+    FramebufferConsole console = FramebufferConsole(framebuffer, Color::white, Color::black, 1.0);
+    console.writeLn("Hello, World from the Console!");
 
     while (true) {
         asm("hlt");
