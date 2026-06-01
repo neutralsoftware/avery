@@ -50,7 +50,7 @@ public:
     void newline();
     void backspace();
 
-    void setColor(Color fg, Color bg);
+    void setColor(Color foreground, Color background);
     void setCursor(u64 x, u64 y);
 
 private:
@@ -70,7 +70,6 @@ private:
     u64 cursorY = 0;
 
     u64 rows;
-    bool cursorVisible = true;
 };
 
 #endif //AVERY_FRAMEBUFFER_H

@@ -38,5 +38,11 @@ struct Tuple {
 template <typename T>
 Tuple(T, T) -> Tuple<T>;
 
+inline void* operator new(usize, void* ptr) noexcept {
+    return ptr;
+}
+
+inline void operator delete(void*, void*) noexcept {
+}
 
 #endif //AVERY_TYPES_H

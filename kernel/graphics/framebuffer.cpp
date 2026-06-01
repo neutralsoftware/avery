@@ -507,3 +507,22 @@ void FramebufferConsole::eraseCursor() {
         bg
     );
 }
+
+void FramebufferConsole::setColor(Color foreground, Color background) {
+    this->fg = foreground;
+    this->bg = background;
+}
+
+void FramebufferConsole::setCursor(u64 x, u64 y) {
+    cursorX = x * FONT_WIDTH * fontScale(scale);
+
+    if (cursorX >= framebuffer.width()) {
+        cursorX = framebuffer.width() - FONT_WIDTH * fontScale(scale);
+    }
+
+    cursorY = y;
+
+    if (cursorY >= rows) {
+        cursorY = rows - 1;
+    }
+}
