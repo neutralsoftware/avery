@@ -8,7 +8,9 @@ LAST = 126
 
 def parse_bdf(path):
     glyphs = {}
+    font_ascent = None
     current_encoding = None
+    current_bbx = None
     bitmap = []
     in_bitmap = False
 
@@ -16,8 +18,15 @@ def parse_bdf(path):
         for line in f:
             line = line.strip()
 
-            if line.startswith("ENCODING "):
+            if line.startswith("FONT_ASCENT "):
+                font_ascent = int(line.split()[1])
+
+            elif line.startswith("ENCODING "):
                 current_encoding = int(line.split()[1])
+
+            elif line.startswith("BBX "):
+                parts = line.split()
+                current_bbx = tuple(int(part) for part in parts[1:5])
 
             elif line == "BITMAP":
                 bitmap = []
@@ -25,16 +34,24 @@ def parse_bdf(path):
 
             elif line == "ENDCHAR":
                 if current_encoding is not None and FIRST <= current_encoding <= LAST:
-                    rows = [int(x, 16) for x in bitmap]
+                    bitmap_rows = [int(x, 16) for x in bitmap]
+                    rows = [0] * HEIGHT
 
-                    # Force exactly HEIGHT rows
-                    rows = rows[:HEIGHT]
-                    while len(rows) < HEIGHT:
-                        rows.append(0)
+                    if current_bbx is not None and font_ascent is not None:
+                        _, glyph_height, _, yoff = current_bbx
+                        top = font_ascent - (yoff + glyph_height)
+                    else:
+                        top = 0
+
+                    for i, row in enumerate(bitmap_rows):
+                        dst = top + i
+                        if 0 <= dst < HEIGHT:
+                            rows[dst] = row
 
                     glyphs[current_encoding] = rows
 
                 current_encoding = None
+                current_bbx = None
                 bitmap = []
                 in_bitmap = False
 

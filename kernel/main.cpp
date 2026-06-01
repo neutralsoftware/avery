@@ -32,8 +32,11 @@ extern "C" [[noreturn]] void _start() {
     }
 
     Framebuffer framebuffer = Framebuffer::createFromLimineRequest(framebuffer_request);
-    FramebufferConsole console = FramebufferConsole(framebuffer, Color::white, Color::black, 1.0);
-    console.writeLn("Hello, World from the Console!");
+    FramebufferConsole console = FramebufferConsole(framebuffer, Color::white, Color::black, 1);
+    console.writeLn("The Avery Kernel");
+    console.writeLn("Developed by Neutral Software in 2026");
+    console.writeLn("Version - Alpha 1\n");
+    console.writeLn("Framebuffer initialized");
 
     while (true) {
         asm("hlt");

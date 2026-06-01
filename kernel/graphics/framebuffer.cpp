@@ -337,15 +337,14 @@ void FramebufferConsole::newline() {
 }
 
 void FramebufferConsole::putChar(char c) {
-    eraseCursor();
     switch (c) {
     case '\n':
         newline();
-        break;
+        return;
 
     case '\r':
         cursorX = 0;
-        break;
+        return;
 
     case '\t':
     {
@@ -356,14 +355,12 @@ void FramebufferConsole::putChar(char c) {
             putChar(' ');
         }
 
-        drawCursor();
-
         return;
     }
 
     case '\b':
         backspace();
-        break;
+        return;
 
     default:
         drawCell(cursorX, cursorY, c);
@@ -375,9 +372,6 @@ void FramebufferConsole::putChar(char c) {
 
         return;
     }
-
-
-    drawCursor();
 }
 
 void FramebufferConsole::write(string str) {
@@ -436,7 +430,7 @@ void FramebufferConsole::drawCursor() {
 
     framebuffer.paintRectangle(
         {pixelX, pixelY},
-        {charWidth, charHeight},
+        {pixelX + charWidth, pixelY + charHeight},
         fg
     );
 }
@@ -451,7 +445,7 @@ void FramebufferConsole::eraseCursor() {
 
     framebuffer.paintRectangle(
         {pixelX, pixelY},
-        {charWidth, charHeight},
+        {pixelX + charWidth, pixelY + charHeight},
         bg
     );
 }
