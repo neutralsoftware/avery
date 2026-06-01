@@ -1,0 +1,76 @@
+/*
+* framebuffer.h
+* As part of the Avery project
+* Created by Max Van den Eynde in 2026
+* --------------------------------------
+* Description: Framebuffer features
+* Copyright (c) 2026 Max Van den Eynde
+*/
+
+#ifndef AVERY_FRAMEBUFFER_H
+#define AVERY_FRAMEBUFFER_H
+#include "graphicsTypes.h"
+#include "../types.h"
+
+struct limine_framebuffer_request;
+struct limine_framebuffer;
+
+class Framebuffer {
+public:
+    static Framebuffer createFromLimineRequest(volatile limine_framebuffer_request& request);
+
+    void setColor(Tuple<u64> position, Color color) const;
+    void paintRectangle(Tuple<u64> start, Tuple<u64> end, Color color) const;
+    void drawCharacter(Tuple<u64> pos, Color fg, Color bg, char c, float scaleBy = 1.0) const;
+    void copyRect(Tuple<u64> src, Tuple<u64> dst, Tuple<u64> size) const;
+
+    [[nodiscard]] Color getColor(Tuple<u64> pos) const;
+
+    [[nodiscard]] u64 width() const;
+    [[nodiscard]] u64 height() const;
+
+private:
+    volatile u32* fb_ptr = nullptr;
+    limine_framebuffer* fb = nullptr;
+};
+
+class FramebufferConsole {
+public:
+    FramebufferConsole(
+        const Framebuffer& framebuffer,
+        Color foreground,
+        Color background,
+        float scale = 1.0
+    );
+
+    void clear();
+    void putChar(char c);
+    void write(string str);
+    void writeLn(string str);
+    void newline();
+    void backspace();
+
+    void setColor(Color fg, Color bg);
+    void setCursor(u64 x, u64 y);
+
+private:
+    void drawCursor();
+    void eraseCursor();
+    void scroll();
+    void drawCell(u64 pixelX, u64 y, char c);
+
+    const Framebuffer& framebuffer;
+
+    Color fg;
+    Color bg;
+
+    float scale;
+
+    u64 cursorX = 0;
+    u64 cursorY = 0;
+
+    u64 rows;
+    bool cursorVisible = true;
+};
+
+#endif //AVERY_FRAMEBUFFER_H

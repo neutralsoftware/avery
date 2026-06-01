@@ -15,7 +15,7 @@ practices while remaining approachable to contributors and learners alike.
 
 ### Foundation
 
-- [ ] Serial output
+- [x] Serial output
 - [ ] Framebuffer abstraction + character output
 - [ ] Panic functions + Assertion system
 - [ ] Logging system (both visual + serial)

@@ -32,5 +32,4 @@ namespace io {
         return val;
     }
 }
-
 #endif //AVERY_IO_H
