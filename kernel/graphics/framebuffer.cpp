@@ -14,6 +14,53 @@
 #include "graphics/graphicsTypes.h"
 #include "types.h"
 
+namespace {
+    u64 fontScale(float scale) {
+        if (scale < 1.0f) {
+            return 1;
+        }
+
+        return static_cast<u64>(scale);
+    }
+
+    u64 glyphAdvance(char c) {
+        if (c < FONT_FIRST || c > FONT_LAST) {
+            c = '?';
+        }
+
+        if (c == ' ') {
+            return 4;
+        }
+
+        const u8* glyph = font8x16[c - FONT_FIRST];
+        i64 maxCol = -1;
+
+        for (u64 row = 0; row < FONT_HEIGHT; row++) {
+            u8 bits = glyph[row];
+
+            for (u64 col = 0; col < FONT_WIDTH; col++) {
+                if (bits & (0x80 >> col)) {
+                    if (static_cast<i64>(col) > maxCol) {
+                        maxCol = static_cast<i64>(col);
+                    }
+                }
+            }
+        }
+
+        if (maxCol < 0) {
+            return 4;
+        }
+
+        u64 advance = static_cast<u64>(maxCol) + 2;
+
+        if (advance > FONT_WIDTH) {
+            return FONT_WIDTH;
+        }
+
+        return advance;
+    }
+}
+
 Framebuffer Framebuffer::createFromLimineRequest(
     volatile limine_framebuffer_request& request
 ) {
@@ -292,14 +339,12 @@ FramebufferConsole::FramebufferConsole(const Framebuffer& framebuffer,
                                        Color background,
                                        float scale) :
     framebuffer(framebuffer), fg(foreground), bg(background), scale(scale) {
-    if (this->scale == 0.0) {
+    if (this->scale < 1.0f) {
         this->scale = 1.0f;
     }
 
-    const u64 charWidth = static_cast<u64>(FONT_WIDTH * static_cast<double>(scale));
-    const u64 charHeight = static_cast<u64>(FONT_HEIGHT * static_cast<double>(scale));
+    const u64 charHeight = FONT_HEIGHT * fontScale(scale);
 
-    columns = framebuffer.width() / charWidth;
     rows = framebuffer.height() / charHeight;
 
     clear();
@@ -313,9 +358,8 @@ void FramebufferConsole::clear() {
     cursorY = 0;
 }
 
-void FramebufferConsole::drawCell(u64 x, u64 y, char c) {
-    const u64 pixelX = static_cast<u64>(static_cast<double>(x) * FONT_WIDTH * static_cast<double>(scale));
-    const u64 pixelY = static_cast<u64>(static_cast<double>(y) * FONT_HEIGHT * static_cast<double>(scale));
+void FramebufferConsole::drawCell(u64 pixelX, u64 y, char c) {
+    const u64 pixelY = y * FONT_HEIGHT * fontScale(scale);
 
     framebuffer.drawCharacter(
         {pixelX, pixelY},
@@ -349,7 +393,9 @@ void FramebufferConsole::putChar(char c) {
     case '\t':
     {
         constexpr u64 tabSize = 4;
-        u64 nextTab = (cursorX + tabSize) & ~(tabSize - 1);
+        const u64 spaceWidth = glyphAdvance(' ') * fontScale(scale);
+        const u64 tabWidth = spaceWidth * tabSize;
+        u64 nextTab = ((cursorX / tabWidth) + 1) * tabWidth;
 
         while (cursorX < nextTab) {
             putChar(' ');
@@ -363,10 +409,17 @@ void FramebufferConsole::putChar(char c) {
         return;
 
     default:
-        drawCell(cursorX, cursorY, c);
-        cursorX++;
+        const u64 scaledFontWidth = FONT_WIDTH * fontScale(scale);
+        const u64 advance = glyphAdvance(c) * fontScale(scale);
 
-        if (cursorX >= columns) {
+        if (cursorX + scaledFontWidth > framebuffer.width()) {
+            newline();
+        }
+
+        drawCell(cursorX, cursorY, c);
+        cursorX += advance;
+
+        if (cursorX >= framebuffer.width()) {
             newline();
         }
 
@@ -396,17 +449,24 @@ void FramebufferConsole::backspace() {
         }
 
         cursorY--;
-        cursorX = columns - 1;
+        cursorX = framebuffer.width() - FONT_WIDTH * fontScale(scale);
     }
     else {
-        cursorX--;
+        const u64 charWidth = FONT_WIDTH * fontScale(scale);
+
+        if (cursorX > charWidth) {
+            cursorX -= charWidth;
+        }
+        else {
+            cursorX = 0;
+        }
     }
 
     drawCell(cursorX, cursorY, ' ');
 }
 
 void FramebufferConsole::scroll() {
-    const u64 charHeight = static_cast<u64>(FONT_HEIGHT * static_cast<double>(scale));
+    const u64 charHeight = FONT_HEIGHT * fontScale(scale);
 
     framebuffer.copyRect(
         {0, charHeight},
@@ -422,30 +482,28 @@ void FramebufferConsole::scroll() {
 }
 
 void FramebufferConsole::drawCursor() {
-    const u64 charWidth = static_cast<u64>(FONT_WIDTH * static_cast<double>(scale));
-    const u64 charHeight = static_cast<u64>(FONT_HEIGHT * static_cast<double>(scale));
+    const u64 charHeight = FONT_HEIGHT * fontScale(scale);
 
-    const u64 pixelX = cursorX * charWidth;
+    const u64 pixelX = cursorX;
     const u64 pixelY = cursorY * charHeight;
 
     framebuffer.paintRectangle(
         {pixelX, pixelY},
-        {pixelX + charWidth, pixelY + charHeight},
+        {pixelX + FONT_WIDTH * fontScale(scale), pixelY + charHeight},
         fg
     );
 }
 
 
 void FramebufferConsole::eraseCursor() {
-    const u64 charWidth = static_cast<u64>(FONT_WIDTH * static_cast<double>(scale));
-    const u64 charHeight = static_cast<u64>(FONT_HEIGHT * static_cast<double>(scale));
+    const u64 charHeight = FONT_HEIGHT * fontScale(scale);
 
-    const u64 pixelX = cursorX * charWidth;
+    const u64 pixelX = cursorX;
     const u64 pixelY = cursorY * charHeight;
 
     framebuffer.paintRectangle(
         {pixelX, pixelY},
-        {pixelX + charWidth, pixelY + charHeight},
+        {pixelX + FONT_WIDTH * fontScale(scale), pixelY + charHeight},
         bg
     );
 }

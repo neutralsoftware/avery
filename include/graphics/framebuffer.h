@@ -57,7 +57,7 @@ private:
     void drawCursor();
     void eraseCursor();
     void scroll();
-    void drawCell(u64 x, u64 y, char c);
+    void drawCell(u64 pixelX, u64 y, char c);
 
     const Framebuffer& framebuffer;
 
@@ -70,7 +70,6 @@ private:
     u64 cursorY = 0;
 
     u64 rows;
-    u64 columns;
     bool cursorVisible = true;
 };
 
