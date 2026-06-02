@@ -19,14 +19,14 @@ practices while remaining approachable to contributors and learners alike.
 - [x] Framebuffer abstraction + character output
 - [x] Panic functions + Assertion system
 - [x] Logging system (both visual + serial)
-- [ ] Halt loop
-- [ ] Basics of the kernel + GDT, IDT and interrupt handlers
+- [x] Halt loop
+- [x] Basics of the kernel + GDT, IDT and interrupt handlers
 - [ ] PIC, timer and keyboard support
 - [ ] Stack tracing support
 
 ### Memory
 
-- [ ] Limine Memory map parsion
+- [ ] Limine Memory map parsing
 - [ ] Physical memory manager
 - [ ] Virtual memory manager
 - [ ] Kernel heap (malloc, free)

@@ -2,6 +2,7 @@
 
 #include "../include/kernel/console.h"
 #include "core/regs.h"
+#include "core/systems.h"
 #include "graphics/framebuffer.h"
 #include "io/serial.h"
 #include "kernel/debug.h"
@@ -24,6 +25,7 @@ static volatile uint64_t limine_requests_end_marker[] = LIMINE_REQUESTS_END_MARK
 
 extern "C" [[noreturn]] void _start() {
     regs::enableSSE();
+    core::initSystems();
 
     if (LIMINE_BASE_REVISION_SUPPORTED(limine_base_revision) == false) {
         while (true) {
@@ -35,12 +37,9 @@ extern "C" [[noreturn]] void _start() {
     Framebuffer framebuffer = Framebuffer::createFromLimineRequest(framebuffer_request);
     out::initFramebufferConsole(framebuffer);
 
-    ASSERT(false == true);
-
-
-    out::println("Hello, World!");
-    out::switchTo(ConsoleOutputMode::Serial);
-    out::println("Hello, World!");
+    out::println("The Avery Kernel");
+    out::println("Version Alpha 1 (Development Edition)");
+    out::println("Made by Neutral Software in 2026");
 
     while (true) {
         asm("hlt");

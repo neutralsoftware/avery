@@ -29,6 +29,7 @@ namespace out {
     void initFramebufferConsole(const Framebuffer& framebuffer);
     void print(string str);
     void println(string str);
+    void printHex(u64 num);
     void putChar(char c);
     void clear();
 
