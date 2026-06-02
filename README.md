@@ -17,8 +17,8 @@ practices while remaining approachable to contributors and learners alike.
 
 - [x] Serial output
 - [x] Framebuffer abstraction + character output
-- [ ] Panic functions + Assertion system
-- [ ] Logging system (both visual + serial)
+- [x] Panic functions + Assertion system
+- [x] Logging system (both visual + serial)
 - [ ] Halt loop
 - [ ] Basics of the kernel + GDT, IDT and interrupt handlers
 - [ ] PIC, timer and keyboard support

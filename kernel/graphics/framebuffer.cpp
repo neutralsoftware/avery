@@ -12,7 +12,7 @@
 #include <limine.h>
 
 #include "graphics/graphicsTypes.h"
-#include "types.h"
+#include "../../include/types.h"
 
 namespace {
     u64 fontScale(float scale) {

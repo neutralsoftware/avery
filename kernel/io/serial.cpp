@@ -7,7 +7,7 @@
 * Copyright (c) 2026 Max Van den Eynde
 */
 
-#include "types.h"
+#include "../../include/types.h"
 #include "io/serial.h"
 #include "io/io.h"
 
