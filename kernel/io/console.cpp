@@ -74,3 +74,18 @@ void out::putChar(char c) {
         io::serialWriteChar(c);
     }
 }
+
+void out::printHex(u64 num) {
+    char hex[17]; // 16 digits + null terminator
+    hex[16] = '\0';
+
+    const char* digits = "0123456789ABCDEF";
+
+    for (int i = 15; i >= 0; --i) {
+        hex[i] = digits[num & 0xF];
+        num >>= 4;
+    }
+
+    print("0x");
+    print(hex);
+}

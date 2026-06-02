@@ -26,7 +26,7 @@ practices while remaining approachable to contributors and learners alike.
 
 ### Memory
 
-- [ ] Limine Memory map parsion
+- [ ] Limine Memory map parsing
 - [ ] Physical memory manager
 - [ ] Virtual memory manager
 - [ ] Kernel heap (malloc, free)

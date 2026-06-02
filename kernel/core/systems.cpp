@@ -12,10 +12,13 @@
 #include <core/systems.h>
 
 #include "core/idt.h"
+#include "core/isr.h"
 
 void core::initSystems() {
     initGdt();
     debug::log("Initialized GDT");
     initIdt();
     debug::log("Initialized IDT");
+    initIsrs();
+    debug::log("All ISRs bound correctly");
 }

@@ -40,13 +40,13 @@
 
 void debug::log(const char* message, LogType logType) {
     if (logType == LogType::Serial) {
-        io::serialWrite("(LOG) -> ");
+        io::serialWrite("[LOG] ");
         io::serialWrite(message);
         io::serialWrite("\n");
     }
     else {
         out::setColor(Color::green, Color::black);
-        out::print("(LOG): ");
+        out::print("[LOG]");
         out::println(message);
     }
 }
@@ -54,13 +54,13 @@ void debug::log(const char* message, LogType logType) {
 
 void debug::warn(const char* message, LogType logType) {
     if (logType == LogType::Serial) {
-        io::serialWrite("(WARNING) -> ");
+        io::serialWrite("[WARNING] ");
         io::serialWrite(message);
         io::serialWrite("\n");
     }
     else {
         out::setColor(Color::yellow, Color::black);
-        out::print("(WARNING): ");
+        out::print("[WARNING] ");
         out::println(message);
     }
 }
@@ -68,13 +68,13 @@ void debug::warn(const char* message, LogType logType) {
 
 void debug::error(const char* message, LogType logType) {
     if (logType == LogType::Serial) {
-        io::serialWrite("(ERROR) -> ");
+        io::serialWrite("[ERROR] ");
         io::serialWrite(message);
         io::serialWrite("\n");
     }
     else {
         out::setColor(Color::red, Color::black);
-        out::print("(ERROR): ");
+        out::print("[ERROR] ");
         out::println(message);
     }
 }

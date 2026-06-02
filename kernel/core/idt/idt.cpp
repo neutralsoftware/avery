@@ -20,7 +20,7 @@ void idt::setGate(u8 num, u64 base, u16 sel, u8 flags) {
     idtEntries[num].ist = 0;
     idtEntries[num].flags = flags;
     idtEntries[num].offsetMid = (base >> 16) & 0xFFFF;
-    idtEntries[num].offsetHigh = (base >> 16) & 0xFFFF;
+    idtEntries[num].offsetHigh = (base >> 32) & 0xFFFFFFFF;
     idtEntries[num].zero = 0;
 }
 
