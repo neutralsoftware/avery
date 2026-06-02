@@ -1,9 +1,10 @@
 #include <limine.h>
 
-#include "console.h"
+#include "../include/kernel/console.h"
 #include "core/regs.h"
 #include "graphics/framebuffer.h"
 #include "io/serial.h"
+#include "kernel/debug.h"
 
 __attribute__((used, section(".limine_requests")))
 static volatile uint64_t limine_base_revision[] = LIMINE_BASE_REVISION(6);
@@ -30,8 +31,12 @@ extern "C" [[noreturn]] void _start() {
         }
     }
 
+
     Framebuffer framebuffer = Framebuffer::createFromLimineRequest(framebuffer_request);
     out::initFramebufferConsole(framebuffer);
+
+    ASSERT(false == true);
+
 
     out::println("Hello, World!");
     out::switchTo(ConsoleOutputMode::Serial);

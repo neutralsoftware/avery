@@ -9,8 +9,8 @@
 
 #ifndef AVERY_CONSOLE_H
 #define AVERY_CONSOLE_H
-#include "types.h"
-#include "graphics/graphicsTypes.h"
+#include "../types.h"
+#include "../graphics/graphicsTypes.h"
 
 #pragma once
 

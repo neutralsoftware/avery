@@ -8,7 +8,7 @@
 */
 
 #include "graphics/framebuffer.h"
-#include "console.h"
+#include "../../include/kernel/console.h"
 
 #include "io/serial.h"
 

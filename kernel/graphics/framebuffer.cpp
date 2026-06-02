@@ -12,7 +12,8 @@
 #include <limine.h>
 
 #include "graphics/graphicsTypes.h"
-#include "types.h"
+#include "../../include/types.h"
+#include "kernel/debug.h"
 
 namespace {
     u64 fontScale(float scale) {
@@ -66,11 +67,7 @@ Framebuffer Framebuffer::createFromLimineRequest(
 ) {
     Framebuffer framebuffer;
 
-    if (request.response == nullptr || request.response->framebuffer_count < 1) {
-        while (true) {
-            asm volatile("hlt");
-        }
-    }
+    ASSERT(request.response == nullptr || request.response->framebuffer_count < 1);
 
     framebuffer.fb = request.response->framebuffers[0];
     framebuffer.fb_ptr = static_cast<volatile u32*>(framebuffer.fb->address);
