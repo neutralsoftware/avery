@@ -67,7 +67,7 @@ Framebuffer Framebuffer::createFromLimineRequest(
 ) {
     Framebuffer framebuffer;
 
-    ASSERT(request.response == nullptr || request.response->framebuffer_count < 1);
+    ASSERT(request.response != nullptr && request.response->framebuffer_count >= 1);
 
     framebuffer.fb = request.response->framebuffers[0];
     framebuffer.fb_ptr = static_cast<volatile u32*>(framebuffer.fb->address);

@@ -37,9 +37,9 @@ extern "C" [[noreturn]] void _start() {
     Framebuffer framebuffer = Framebuffer::createFromLimineRequest(framebuffer_request);
     out::initFramebufferConsole(framebuffer);
 
-    out::println("Hello, World!");
-    out::switchTo(ConsoleOutputMode::Serial);
-    out::println("Hello, World!");
+    out::println("The Avery Kernel");
+    out::println("Version Alpha 1 (Development Edition)");
+    out::println("Made by Neutral Software in 2026");
 
     while (true) {
         asm("hlt");
