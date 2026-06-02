@@ -1,6 +1,6 @@
 
 cmake_minimum_required(VERSION 3.25)
-project(Avery LANGUAGES CXX)
+project(Avery LANGUAGES CXX ASM_NASM)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -10,8 +10,11 @@ set(ISO_ROOT ${CMAKE_BINARY_DIR}/iso)
 set(ISO_FILE ${CMAKE_BINARY_DIR}/avery.iso)
 set(LIMINE_DIR ${CMAKE_BINARY_DIR}/limine)
 
+set(CMAKE_ASM_NASM_OBJECT_FORMAT elf64)
+
 file(GLOB_RECURSE KERNEL_SOURCES CONFIGURE_DEPENDS
         kernel/*.cpp
+        kernel/*.asm
         include/*.h
         include/*.hpp
 )
@@ -27,20 +30,20 @@ target_include_directories(avery_objects PRIVATE
 )
 
 target_compile_options(avery_objects PRIVATE
-        -ffreestanding
-        -fno-exceptions
-        -fno-rtti
-        -fno-stack-protector
-        -fno-pic
-        -m64
-        -mno-red-zone
-        -mcmodel=kernel
-        -Wall
-        -Wextra
-        -Wpedantic
-        -Wconversion
-        -Wshadow
-        -Werror
+        $<$<COMPILE_LANGUAGE:CXX>:-ffreestanding>
+        $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
+        $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
+        $<$<COMPILE_LANGUAGE:CXX>:-fno-stack-protector>
+        $<$<COMPILE_LANGUAGE:CXX>:-fno-pic>
+        $<$<COMPILE_LANGUAGE:CXX>:-m64>
+        $<$<COMPILE_LANGUAGE:CXX>:-mno-red-zone>
+        $<$<COMPILE_LANGUAGE:CXX>:-mcmodel=kernel>
+        $<$<COMPILE_LANGUAGE:CXX>:-Wall>
+        $<$<COMPILE_LANGUAGE:CXX>:-Wextra>
+        $<$<COMPILE_LANGUAGE:CXX>:-Wpedantic>
+        $<$<COMPILE_LANGUAGE:CXX>:-Wconversion>
+        $<$<COMPILE_LANGUAGE:CXX>:-Wshadow>
+        $<$<COMPILE_LANGUAGE:CXX>:-Werror>
 )
 
 set(KERNEL_ELF ${CMAKE_BINARY_DIR}/avery.elf)

@@ -19,7 +19,7 @@ practices while remaining approachable to contributors and learners alike.
 - [x] Framebuffer abstraction + character output
 - [x] Panic functions + Assertion system
 - [x] Logging system (both visual + serial)
-- [ ] Halt loop
+- [x] Halt loop
 - [ ] Basics of the kernel + GDT, IDT and interrupt handlers
 - [ ] PIC, timer and keyboard support
 - [ ] Stack tracing support

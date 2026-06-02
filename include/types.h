@@ -15,6 +15,7 @@ using u16 = unsigned short;
 using u32 = unsigned int;
 using u64 = unsigned long long;
 using usize = decltype(sizeof(0));
+using uptr = decltype(sizeof(0));
 
 using i8 = char;
 using i16 = short;
