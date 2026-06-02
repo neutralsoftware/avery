@@ -12,6 +12,7 @@
 #include <core/systems.h>
 
 #include "core/idt.h"
+#include "core/irq.h"
 #include "core/isr.h"
 
 void core::initSystems() {
@@ -21,4 +22,6 @@ void core::initSystems() {
     debug::log("Initialized IDT");
     initIsrs();
     debug::log("All ISRs bound correctly");
+    initIrq();
+    debug::log("All IRQs bound correctly");
 }
