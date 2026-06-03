@@ -7,10 +7,26 @@
 * Copyright (c) 2026 Max Van den Eynde
 */
 
+#include <limine.h>
 #include <kernel/memory.h>
+
+#include "kernel/debug.h"
+
+u64 HHDMOffset = 0;
 
 void memory::copy(u8* dest, const u8* src, int count) {
     for (int i = 0; i < count; i++) {
         dest[i] = src[i];
     }
+}
+
+void memory::setHHDM(volatile limine_hhdm_request& request) {
+    ASSERT(request.response != nullptr);
+    ASSERT(request.response->offset != 0);
+    HHDMOffset = request.response->offset;
+}
+
+u64 memory::getHHDMOffset() {
+    EXPECT(HHDMOffset != 0);
+    return HHDMOffset;
 }

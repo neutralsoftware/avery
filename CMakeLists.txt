@@ -44,6 +44,7 @@ target_compile_options(avery_objects PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-Wconversion>
         $<$<COMPILE_LANGUAGE:CXX>:-Wshadow>
         $<$<COMPILE_LANGUAGE:CXX>:-Werror>
+        $<$<COMPILE_LANGUAGE:CXX>:-ffile-prefix-map=${CMAKE_SOURCE_DIR}/=>
 )
 
 set(KERNEL_ELF ${CMAKE_BINARY_DIR}/avery.elf)

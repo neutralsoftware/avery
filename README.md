@@ -30,6 +30,7 @@ practices while remaining approachable to contributors and learners alike.
 - [ ] Physical memory manager
 - [ ] Virtual memory manager
 - [ ] Kernel heap (malloc, free)
+- [ ] Move to Limine 6 (APIC or x2APIC)
 
 ### Hardware discovery
 
