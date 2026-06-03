@@ -49,9 +49,11 @@ public:
     void writeLn(string str);
     void newline();
     void backspace();
+    void backspace(char c);
 
     void setColor(Color foreground, Color background);
     void setCursor(u64 x, u64 y);
+    void updateCursor();
 
 private:
     void drawCursor();
@@ -68,6 +70,9 @@ private:
 
     u64 cursorX = 0;
     u64 cursorY = 0;
+    bool cursorVisible = true;
+    bool cursorDrawn = false;
+    u64 cursorBlinkTimestamp = 0;
 
     u64 rows;
 };

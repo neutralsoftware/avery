@@ -11,6 +11,8 @@
 #define AVERY_MEMORY_H
 #include "../types.h"
 
+struct limine_hhdm_request;
+
 namespace memory {
     void copy(u8* dest, const u8* src, int count);
 
@@ -20,6 +22,10 @@ namespace memory {
             dest[i] = val;
         }
     }
+
+    void setHHDM(volatile limine_hhdm_request& request);
+    u64 getHHDMOffset();
 }
+
 
 #endif //AVERY_MEMORY_H

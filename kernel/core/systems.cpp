@@ -11,9 +11,12 @@
 #include "kernel/debug.h"
 #include <core/systems.h>
 
+#include "core/apic.h"
 #include "core/idt.h"
 #include "core/irq.h"
 #include "core/isr.h"
+#include "drivers/keyboard.h"
+#include "drivers/pit.h"
 
 void core::initSystems() {
     initGdt();
@@ -22,6 +25,18 @@ void core::initSystems() {
     debug::log("Initialized IDT");
     initIsrs();
     debug::log("All ISRs bound correctly");
+
+    //lapic::initBase();
+    //lapic::enable();
+    //lapic::enableLegacyMode();
+    debug::log("Using PIC Legacy Mode");
+
     initIrq();
     debug::log("All IRQs bound correctly");
+    initPit();
+    debug::log("The Timer is initialized correctly");
+    keyboard::init();
+    debug::log("The Keyboard is initialized correctly");
+
+    asm volatile("sti");
 }

@@ -31,6 +31,26 @@ __func__                                 \
 }                                                 \
 } while (0)
 
+#define CHECK(expr) \
+do \
+ {                                                  \
+if (!(expr)) {                                    \
+debug::warn(                                  \
+"Condition not met" #expr "in" __FILE__                  \
+);                                            \
+}                                                 \
+} while (0)
+
+#define EXPECT(expr) \
+do \
+{                                                  \
+if (!(expr)) {                                    \
+debug::error(                                  \
+"Condition not met" #expr "in" __FILE__                  \
+);                                            \
+}                                                 \
+} while (0)
+
 #ifndef NDEBUG
 #define ASSERT(expr) VERIFY(expr)
 #else

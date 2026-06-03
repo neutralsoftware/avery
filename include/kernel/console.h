@@ -40,5 +40,10 @@ namespace out {
     void setColor(Color fg, Color bg);
 };
 
+namespace in {
+    string getLine(string prompt = nullptr);
+    char getChar();
+}
+
 
 #endif //AVERY_CONSOLE_H

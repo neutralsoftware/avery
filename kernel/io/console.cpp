@@ -10,6 +10,7 @@
 #include "graphics/framebuffer.h"
 #include "../../include/kernel/console.h"
 
+#include "drivers/keyboard.h"
 #include "io/serial.h"
 
 static FramebufferConsole* consoleAccess = nullptr;
@@ -88,4 +89,56 @@ void out::printHex(u64 num) {
 
     print("0x");
     print(hex);
+}
+
+char in::getChar() {
+    while (!keyboard::hasChar()) {
+        if (out::outputMode == ConsoleOutputMode::Framebuffer && GlobalFramebufferConsole != nullptr) {
+            GlobalFramebufferConsole->updateCursor();
+        }
+
+        asm volatile("pause");
+    }
+
+    return keyboard::getChar();
+}
+
+string in::getLine(string prompt) {
+    static char buffer[256];
+    usize length = 0;
+
+    if (prompt != nullptr) {
+        out::print(prompt);
+    }
+
+    while (true) {
+        char c = getChar();
+
+        if (c == '\n') {
+            out::putChar('\n');
+            buffer[length] = '\0';
+            return buffer;
+        }
+
+        if (c == '\b') {
+            if (length > 0) {
+                --length;
+
+                if (out::outputMode == ConsoleOutputMode::Framebuffer && GlobalFramebufferConsole != nullptr) {
+                    GlobalFramebufferConsole->backspace(buffer[length]);
+                }
+                else {
+                    out::putChar('\b');
+                }
+            }
+
+            continue;
+        }
+
+        if (length < 255) {
+            buffer[length] = c;
+            ++length;
+            out::putChar(c);
+        }
+    }
 }
