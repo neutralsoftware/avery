@@ -14,7 +14,7 @@
 #include "../../types.h"
 #include "kernel/memory.h"
 
-struct limine_memmap_response;
+struct limine_memmap_request;
 
 namespace pmm {
     struct MemoryRegion {
@@ -45,7 +45,7 @@ namespace pmm {
 
     extern PhysicalMemory physicalMemory;
 
-    void init(volatile limine_memmap_response& memmap);
+    void init(volatile limine_memmap_request& memmap);
     void markUsed(physAddr addr, u64 pageCount);
     void markFree(physAddr addr, u64 pageCount);
 
@@ -58,6 +58,8 @@ namespace pmm {
     bool isFree(physAddr addr);
     u64 getFreePages();
     u64 getTotalPages();
+    u64 getUsedPages();
+    u64 getFreeMemory();
 
     inline void* physicalToVirtual(physAddr p) {
         return (void*)(p + memory::getHHDMOffset());

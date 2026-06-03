@@ -1,5 +1,6 @@
 #include <limine.h>
 
+#include "tests.h"
 #include "../include/kernel/console.h"
 #include "core/regs.h"
 #include "core/systems.h"
@@ -40,20 +41,25 @@ __attribute__((used, section(".limine_requests_end")))
 static volatile uint64_t limine_requests_end_marker[] = LIMINE_REQUESTS_END_MARKER;
 
 extern "C" [[noreturn]] void _start() {
-    memory::setHHDM(hddm_request);
-
-    regs::enableSSE();
-    core::initSystems();
-
     if (LIMINE_BASE_REVISION_SUPPORTED(limine_base_revision) == false) {
         while (true) {
             asm("hlt");
         }
     }
 
+    memory::setHHDM(hddm_request);
+
+    regs::enableSSE();
+    core::initSystems();
+    memory::initMemoryServices(memmap_request);
+
     Framebuffer framebuffer = Framebuffer::createFromLimineRequest(framebuffer_request);
     out::initFramebufferConsole(framebuffer);
 
+    tests::runAllMemoryTests();
+
+    out::setColor(Color::white, Color::black);
+    out::clear();
     out::println("The Avery Kernel");
     out::println("Version Alpha 1 (Development Edition)");
     out::println("Made by Max Van den Eynde in 2026");

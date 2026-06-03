@@ -23,8 +23,9 @@ namespace memory {
         }
     }
 
-    void setHHDM(volatile limine_hhdm_request& request);
+    void setHHDM(volatile struct limine_hhdm_request& request);
     u64 getHHDMOffset();
+    void initMemoryServices(volatile struct limine_memmap_request& request);
 }
 
 

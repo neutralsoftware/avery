@@ -53,6 +53,21 @@ debug::error(                                  \
 }                                                 \
 } while (0)
 
+#define TEST_RESULT(expr) \
+do \
+{                                                  \
+if (expr) {                                    \
+out::setColor(Color::green, Color::blue); \
+out::println("========================"); \
+out::println("TEST SUCCEEDED"); \
+}                                                 \
+else { \
+out::setColor(Color::red, Color::blue); \
+out::println("========================"); \
+out::println("TEST FAILED"); \
+} \
+} while (0)
+
 #ifndef NDEBUG
 #define ASSERT(expr) VERIFY(expr)
 #else

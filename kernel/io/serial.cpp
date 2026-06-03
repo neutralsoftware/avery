@@ -50,17 +50,18 @@ void io::serialWriteHex(u64 num) {
     serialWrite(hex);
 }
 
-void io::serialWriteNumber(u32 num) {
-    char buffer[11];
-    usize index = 10;
+void io::serialWriteNumber(u64 num) {
+    char buffer[21];
+    usize index = 20;
 
     buffer[index] = '\0';
 
     do {
         index--;
         buffer[index] = static_cast<char>('0' + (num % 10));
-        num = num / 10;
-    } while (num != 0);
+        num /= 10;
+    }
+    while (num != 0);
 
     serialWrite(&buffer[index]);
 }

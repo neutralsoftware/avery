@@ -104,16 +104,16 @@ void out::printHex(u64 num) {
     print(hex);
 }
 
-void out::printNumber(u32 num) {
-    char buffer[11];
-    usize index = 10;
+void out::printNumber(u64 num) {
+    char buffer[21];
+    usize index = 20;
 
     buffer[index] = '\0';
 
     do {
         index--;
         buffer[index] = static_cast<char>('0' + (num % 10));
-        num = num / 10;
+        num /= 10;
     }
     while (num != 0);
 
