@@ -30,6 +30,7 @@ namespace out {
     void print(string str);
     void println(string str);
     void printHex(u64 num);
+    void printNumber(u32 num);
     void putChar(char c);
     void clear();
 

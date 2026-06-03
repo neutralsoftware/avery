@@ -12,8 +12,8 @@
 #include "io/serial.h"
 #include "kernel/console.h"
 
-[[noreturn]] void debug::kernelPanic(const char* message, const char* file,
-                                     [[maybe_unused]] int line, const char* function) {
+void debug::kernelPanic(const char* message, const char* file,
+                        [[maybe_unused]] int line, const char* function, bool hlt) {
     out::setColor(Color::white, Color::red);
     out::clear();
 
@@ -33,8 +33,10 @@
 
     asm volatile("cli");
 
-    while (true) {
-        asm volatile("hlt");
+    if (hlt) {
+        while (true) {
+            asm volatile("hlt");
+        }
     }
 }
 
@@ -76,6 +78,38 @@ void debug::error(const char* message, LogType logType) {
         out::setColor(Color::red, Color::black);
         out::print("[ERROR] ");
         out::println(message);
+    }
+}
+
+void debug::stackTrace(LogType type) {
+    StackFrame* frame;
+
+    asm volatile("mov %%rbp, %0" : "=r"(frame));
+
+    if (type == LogType::Serial) {
+        io::serialWrite("Stack Trace: \n");
+    }
+    else {
+        out::println("Stack Trace:");
+    }
+
+    for (int i = 0; frame && i < 32; i++) {
+        if (type == LogType::Serial) {
+            io::serialWrite("[STACK ");
+            io::serialWriteNumber(static_cast<u32>(i));
+            io::serialWrite("]: ");
+            io::serialWriteHex(frame->rip);
+            io::serialWrite("\n");
+        }
+        else {
+            out::print("[STACK ");
+            out::printNumber(static_cast<u32>(i));
+            out::print("]: ");
+            out::printHex(frame->rip);
+            out::print("\n");
+        }
+
+        frame = frame->rbp;
     }
 }
 

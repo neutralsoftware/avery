@@ -11,6 +11,7 @@
 #define AVERY_DEBUG_H
 
 #pragma once
+#include "types.h"
 
 enum class LogType {
     Console,
@@ -18,6 +19,7 @@ enum class LogType {
 };
 
 #define PANIC(msg) debug::kernelPanic(msg, __FILE__, __LINE__, __func__)
+#define PANICNOHLT(msg) debug::kernelPanic(msg, __FILE__, __LINE__, __func__, false)
 
 #define VERIFY(expr)                                      \
 do {                                                  \
@@ -58,10 +60,18 @@ debug::error(                                  \
 #endif
 
 namespace debug {
-    [[noreturn]] void kernelPanic(const char* message, const char* file, int line, const char* function);
+    void kernelPanic(const char* message, const char* file, int line, const char* function,
+                     bool hlt = true);
     void log(const char* message, LogType logType = LogType::Serial);
     void warn(const char* message, LogType logType = LogType::Serial);
     void error(const char* message, LogType logType = LogType::Serial);
+
+    struct StackFrame {
+        StackFrame* rbp;
+        uptr rip;
+    };
+
+    void stackTrace(LogType logType = LogType::Serial);
 }
 
 #endif //AVERY_DEBUG_H

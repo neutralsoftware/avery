@@ -14,6 +14,8 @@
 namespace io {
     void serialWriteChar(char c);
     void serialWrite(string input);
+    void serialWriteHex(u64 num);
+    void serialWriteNumber(u32 num);
 }
 
 #endif //AVERY_SERIAL_H

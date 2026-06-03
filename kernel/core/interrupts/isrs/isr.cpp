@@ -88,6 +88,12 @@ extern "C" void fault_handler(isr::Registers* regs) {
     if (regs->int_no < 32) {
         out::print("Panic with error code: ");
         out::printHex(regs->err_code);
-        PANIC(exception_messages[regs->int_no]);
+        PANICNOHLT(exception_messages[regs->int_no]);
+        out::println("");
+        debug::stackTrace(LogType::Console);
+        debug::stackTrace(LogType::Serial);
+        while (true) {
+            asm volatile("hlt");
+        }
     }
 }
