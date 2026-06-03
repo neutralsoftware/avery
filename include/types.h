@@ -16,6 +16,8 @@ using u32 = unsigned int;
 using u64 = unsigned long long;
 using usize = decltype(sizeof(0));
 using uptr = decltype(sizeof(0));
+using physAddr = uptr;
+using virtAddr = uptr;
 
 using i8 = char;
 using i16 = short;
@@ -44,6 +46,25 @@ inline void* operator new(usize, void* ptr) noexcept {
 }
 
 inline void operator delete(void*, void*) noexcept {
+}
+
+template <typename T>
+concept ByteNumber = requires(T a, T b) {
+    a + b;
+    ~a;
+    a & b;
+};
+
+template <typename T>
+    requires ByteNumber<T>
+T alignUp(T x, T a) {
+    return (x + a - 1) & ~(a - 1);
+}
+
+template <typename T>
+    requires ByteNumber<T>
+T alignDown(T x, T a) {
+    return (x + a - 1) & ~(a - 1);
 }
 
 #endif //AVERY_TYPES_H

@@ -22,7 +22,7 @@ practices while remaining approachable to contributors and learners alike.
 - [x] Halt loop
 - [x] Basics of the kernel + GDT, IDT and interrupt handlers
 - [x] PIC, timer and keyboard support
-- [ ] Stack tracing support
+- [x] Stack tracing support
 
 ### Memory
 
