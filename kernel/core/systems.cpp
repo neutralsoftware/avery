@@ -15,6 +15,7 @@
 #include "core/idt.h"
 #include "core/irq.h"
 #include "core/isr.h"
+#include "drivers/keyboard.h"
 #include "drivers/pit.h"
 
 void core::initSystems() {
@@ -34,6 +35,8 @@ void core::initSystems() {
     debug::log("All IRQs bound correctly");
     initPit();
     debug::log("The Timer is initialized correctly");
+    keyboard::init();
+    debug::log("The Keyboard is initialized correctly");
 
     asm volatile("sti");
 }

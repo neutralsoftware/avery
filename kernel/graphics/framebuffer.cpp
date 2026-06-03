@@ -11,6 +11,7 @@
 #include <graphics/vgaFont.h>
 #include <limine.h>
 
+#include "drivers/pit.h"
 #include "graphics/graphicsTypes.h"
 #include "../../include/types.h"
 #include "kernel/debug.h"
@@ -353,6 +354,9 @@ void FramebufferConsole::clear() {
 
     cursorX = 0;
     cursorY = 0;
+    cursorDrawn = false;
+    cursorBlinkTimestamp = time::getUptime();
+    drawCursor();
 }
 
 void FramebufferConsole::drawCell(u64 pixelX, u64 y, char c) {
@@ -378,14 +382,18 @@ void FramebufferConsole::newline() {
 }
 
 void FramebufferConsole::putChar(char c) {
+    if (cursorDrawn) {
+        eraseCursor();
+    }
+
     switch (c) {
     case '\n':
         newline();
-        return;
+        break;
 
     case '\r':
         cursorX = 0;
-        return;
+        break;
 
     case '\t':
     {
@@ -398,12 +406,12 @@ void FramebufferConsole::putChar(char c) {
             putChar(' ');
         }
 
-        return;
+        break;
     }
 
     case '\b':
         backspace();
-        return;
+        break;
 
     default:
         const u64 scaledFontWidth = FONT_WIDTH * fontScale(scale);
@@ -420,7 +428,12 @@ void FramebufferConsole::putChar(char c) {
             newline();
         }
 
-        return;
+        break;
+    }
+
+    if (cursorVisible) {
+        cursorBlinkTimestamp = time::getUptime();
+        drawCursor();
     }
 }
 
@@ -440,8 +453,16 @@ void FramebufferConsole::writeLn(string str) {
 }
 
 void FramebufferConsole::backspace() {
+    if (cursorDrawn) {
+        eraseCursor();
+    }
+
     if (cursorX == 0) {
         if (cursorY == 0) {
+            if (cursorVisible) {
+                cursorBlinkTimestamp = time::getUptime();
+                drawCursor();
+            }
             return;
         }
 
@@ -460,6 +481,33 @@ void FramebufferConsole::backspace() {
     }
 
     drawCell(cursorX, cursorY, ' ');
+
+    if (cursorVisible) {
+        cursorBlinkTimestamp = time::getUptime();
+        drawCursor();
+    }
+}
+
+void FramebufferConsole::backspace(char c) {
+    if (cursorDrawn) {
+        eraseCursor();
+    }
+
+    const u64 charWidth = glyphAdvance(c) * fontScale(scale);
+
+    if (cursorX >= charWidth) {
+        cursorX -= charWidth;
+    }
+    else {
+        cursorX = 0;
+    }
+
+    drawCell(cursorX, cursorY, ' ');
+
+    if (cursorVisible) {
+        cursorBlinkTimestamp = time::getUptime();
+        drawCursor();
+    }
 }
 
 void FramebufferConsole::scroll() {
@@ -480,29 +528,39 @@ void FramebufferConsole::scroll() {
 
 void FramebufferConsole::drawCursor() {
     const u64 charHeight = FONT_HEIGHT * fontScale(scale);
+    const u64 cursorWidth = fontScale(scale);
 
     const u64 pixelX = cursorX;
     const u64 pixelY = cursorY * charHeight;
 
     framebuffer.paintRectangle(
         {pixelX, pixelY},
-        {pixelX + FONT_WIDTH * fontScale(scale), pixelY + charHeight},
+        {pixelX + cursorWidth, pixelY + charHeight},
         fg
     );
+
+    cursorDrawn = true;
 }
 
 
 void FramebufferConsole::eraseCursor() {
+    if (!cursorDrawn) {
+        return;
+    }
+
     const u64 charHeight = FONT_HEIGHT * fontScale(scale);
+    const u64 cursorWidth = fontScale(scale);
 
     const u64 pixelX = cursorX;
     const u64 pixelY = cursorY * charHeight;
 
     framebuffer.paintRectangle(
         {pixelX, pixelY},
-        {pixelX + FONT_WIDTH * fontScale(scale), pixelY + charHeight},
+        {pixelX + cursorWidth, pixelY + charHeight},
         bg
     );
+
+    cursorDrawn = false;
 }
 
 void FramebufferConsole::setColor(Color foreground, Color background) {
@@ -511,6 +569,10 @@ void FramebufferConsole::setColor(Color foreground, Color background) {
 }
 
 void FramebufferConsole::setCursor(u64 x, u64 y) {
+    if (cursorDrawn) {
+        eraseCursor();
+    }
+
     cursorX = x * FONT_WIDTH * fontScale(scale);
 
     if (cursorX >= framebuffer.width()) {
@@ -521,5 +583,32 @@ void FramebufferConsole::setCursor(u64 x, u64 y) {
 
     if (cursorY >= rows) {
         cursorY = rows - 1;
+    }
+
+    if (cursorVisible) {
+        cursorBlinkTimestamp = time::getUptime();
+        drawCursor();
+    }
+}
+
+void FramebufferConsole::updateCursor() {
+    if (!cursorVisible) {
+        eraseCursor();
+        return;
+    }
+
+    u64 now = time::getUptime();
+
+    if (now - cursorBlinkTimestamp < 500) {
+        return;
+    }
+
+    cursorBlinkTimestamp = now;
+
+    if (cursorDrawn) {
+        eraseCursor();
+    }
+    else {
+        drawCursor();
     }
 }

@@ -21,7 +21,7 @@ practices while remaining approachable to contributors and learners alike.
 - [x] Logging system (both visual + serial)
 - [x] Halt loop
 - [x] Basics of the kernel + GDT, IDT and interrupt handlers
-- [ ] PIC, timer and keyboard support
+- [x] PIC, timer and keyboard support
 - [ ] Stack tracing support
 
 ### Memory
@@ -32,6 +32,14 @@ practices while remaining approachable to contributors and learners alike.
 - [ ] Kernel heap (malloc, free)
 - [ ] Move to Limine 6 (APIC or x2APIC)
 
+### Internal Driver Framework
+
+- [ ] Device objects
+- [ ] Driver registration
+- [ ] Driver lifecycle
+- [ ] MMIO port I/O helpers
+- [ ] Block device abstraction
+
 ### Hardware discovery
 
 - [ ] PCI enumeration
@@ -39,12 +47,12 @@ practices while remaining approachable to contributors and learners alike.
 
 ### Storage
 
-- [ ] Driver system
-- [ ] Filesystem VFS layer
-- [ ] FAT32 support
-- [ ] ext2 support
-- [ ] Read from filesystem
-- [ ] Write to filesystem
+- [ ] ATA driver
+- [ ] Block device layer
+- [ ] VFS
+- [ ] FAT32
+- [ ] ext2
+- [ ] Read & Write files
 
 ### Processes
 
@@ -56,19 +64,95 @@ practices while remaining approachable to contributors and learners alike.
 
 ## Roadmap (for Beta)
 
-### Toolchain
+### Beta 1
 
-- [ ] Migrate a C compiler
-- [ ] Create a libc port
-- [ ] Build C examples
+- [ ] Avery Kernel SDK
+- [ ] Driver build system
+- [ ] Driver templates
+- [ ] Driver documentation
+- [ ] Loadable modules
+- [ ] Driver manifest format
+- [ ] Sample PCI driver
+- [ ] Sample block driver
+- [ ] Sample character driver
+- [ ] Stable kernel driver API
 
-### Hardware
+### Beta 2
 
-- [ ] USB support
-- [ ] Ethernet / networking
+- [ ] ACPI
+- [ ] MADT parsing
+- [ ] x2APIC
+- [ ] APIC timer
+- [ ] IPIs
 
-### Graphics
+### Beta 3
 
-- [ ] Graphics abstraction
+- [ ] xHCI
+- [ ] USB enumeration
+- [ ] USB keyboard
+- [ ] USB mouse
+- [ ] USB mass storage
+- [ ] USB hubs
+
+### Beta 4
+
+- [ ] Ethernet driver (E1000 first)
+- [ ] Ethernet layer
+- [ ] ARP
+- [ ] IPv4
+- [ ] ICMP
+- [ ] UCP
+- [ ] TCP
+- [ ] DNS
+- [ ] DHCP
+
+### Beta 5
+
+- [ ] USB Bluetooth adapter support
+- [ ] HCI layer
+- [ ] L2CAP
+- [ ] HID over Bluetooth
+- [ ] Bluetooth keyboard and mouse
+
+### Beta 6
+
+- [ ] Intel HDA
+- [ ] Audio Mixer
+- [ ] PCM playback
+- [ ] Basic Sound API
+
+### Beta 7
+
+- [ ] Better graphics abstraction
 - [ ] Font renderer
+- [ ] Mouse cursor
+- [ ] Window manager
 - [ ] Simple compositor
+- [ ] Terminal app
+- [ ] File manager
+
+### Beta 8
+
+- [ ] Port binutils
+- [ ] Port Clang
+- [ ] libc
+- [ ] C examples
+- [ ] Build programs for Avery
+
+### Beta 9
+
+- [ ] Self-hosting
+
+### Beta 10
+
+- [ ] Graphics API
+
+### Beta 11
+
+- [ ] Users/groups
+- [ ] Permissions
+- [ ] Process isolation
+- [ ] ASLR
+- [ ] NX
+- [ ] Sandboxing
+- [ ] Driver permissions/signing

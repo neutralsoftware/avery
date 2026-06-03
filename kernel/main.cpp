@@ -50,8 +50,11 @@ extern "C" [[noreturn]] void _start() {
     out::println("The Avery Kernel");
     out::println("Version Alpha 1 (Development Edition)");
     out::println("Made by Neutral Software in 2026");
-    time::wait(3000);
-    out::println("Waiting for something...");
+    string result = in::getLine("What's your name? ");
+    out::print("Hello, ");
+    out::println(result);
+    result = in::getLine("Is this Avery? ");
+    out::println(result);
 
     while (true) {
         asm("hlt");
