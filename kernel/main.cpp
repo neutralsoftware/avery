@@ -3,6 +3,7 @@
 #include "../include/kernel/console.h"
 #include "core/regs.h"
 #include "core/systems.h"
+#include "drivers/pit.h"
 #include "graphics/framebuffer.h"
 #include "io/serial.h"
 #include "kernel/debug.h"
@@ -40,6 +41,8 @@ extern "C" [[noreturn]] void _start() {
     out::println("The Avery Kernel");
     out::println("Version Alpha 1 (Development Edition)");
     out::println("Made by Neutral Software in 2026");
+    time::wait(3000);
+    out::println("Waiting for something...");
 
     while (true) {
         asm("hlt");

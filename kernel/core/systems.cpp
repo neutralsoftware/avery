@@ -14,6 +14,7 @@
 #include "core/idt.h"
 #include "core/irq.h"
 #include "core/isr.h"
+#include "drivers/pit.h"
 
 void core::initSystems() {
     initGdt();
@@ -24,4 +25,8 @@ void core::initSystems() {
     debug::log("All ISRs bound correctly");
     initIrq();
     debug::log("All IRQs bound correctly");
+    initPit();
+    debug::log("The Timer is initialized correctly");
+
+    asm volatile("sti");
 }
