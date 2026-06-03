@@ -77,18 +77,47 @@ void out::putChar(char c) {
 }
 
 void out::printHex(u64 num) {
-    char hex[17]; // 16 digits + null terminator
-    hex[16] = '\0';
-
+    char hex[19];
     const char* digits = "0123456789ABCDEF";
+    usize index = 2;
+    bool started = false;
 
-    for (int i = 15; i >= 0; --i) {
-        hex[i] = digits[num & 0xF];
-        num >>= 4;
+    hex[0] = '0';
+    hex[1] = 'x';
+
+    for (u64 shift = 60; ; shift -= 4) {
+        auto digit = static_cast<usize>((num >> shift) & 0xFULL);
+
+        if (digit != 0 || started || shift == 0) {
+            hex[index] = digits[digit];
+            index++;
+            started = true;
+        }
+
+        if (shift == 0) {
+            break;
+        }
     }
 
-    print("0x");
+    hex[index] = '\0';
+
     print(hex);
+}
+
+void out::printNumber(u32 num) {
+    char buffer[11];
+    usize index = 10;
+
+    buffer[index] = '\0';
+
+    do {
+        index--;
+        buffer[index] = static_cast<char>('0' + (num % 10));
+        num = num / 10;
+    }
+    while (num != 0);
+
+    print(&buffer[index]);
 }
 
 char in::getChar() {

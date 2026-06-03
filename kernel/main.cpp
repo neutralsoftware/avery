@@ -50,11 +50,12 @@ extern "C" [[noreturn]] void _start() {
     out::println("The Avery Kernel");
     out::println("Version Alpha 1 (Development Edition)");
     out::println("Made by Neutral Software in 2026");
-    string result = in::getLine("What's your name? ");
-    out::print("Hello, ");
-    out::println(result);
-    result = in::getLine("Is this Avery? ");
-    out::println(result);
+
+    volatile u32 a = 12;
+    volatile u32 b = 0;
+
+    volatile u32 c = a / b;
+    out::printNumber(reinterpret_cast<u32>(c));
 
     while (true) {
         asm("hlt");
