@@ -17,6 +17,7 @@
 void tests::runAllMemoryTests() {
     pmmTest();
     vmmTest();
+    mallocTest();
 }
 
 void tests::pmmTest() {
@@ -108,7 +109,6 @@ void tests::vmmTest() {
     out::println("");
 
     TEST_RESULT(phys != 0);
-    out::setColor(Color::white, Color::blue);
 
     virtAddr virt = 0xFFFF900000000000;
 
@@ -135,7 +135,6 @@ void tests::vmmTest() {
     out::println("");
 
     TEST_RESULT(mapped);
-    out::setColor(Color::white, Color::blue);
 
 
     volatile u64* ptr = (volatile u64*)virt;
@@ -155,7 +154,6 @@ void tests::vmmTest() {
     out::println("");
 
     TEST_RESULT(readValue == 0x123456789ABCDEF0);
-    out::setColor(Color::white, Color::blue);
 
     physAddr translated = vmm::virtToPhysical(vmm::getKernelPml4(), virt);
 
@@ -167,7 +165,6 @@ void tests::vmmTest() {
     out::println("");
 
     TEST_RESULT(translated == phys);
-    out::setColor(Color::white, Color::blue);
 
     bool unmapped = vmm::unmapPage(vmm::getKernelPml4(), virt);
 
@@ -179,7 +176,6 @@ void tests::vmmTest() {
     out::println("");
 
     TEST_RESULT(unmapped);
-    out::setColor(Color::white, Color::blue);
 
     physAddr translatedAfterUnmap = vmm::virtToPhysical(vmm::getKernelPml4(), virt);
 
@@ -188,12 +184,76 @@ void tests::vmmTest() {
     out::println("");
 
     TEST_RESULT(translatedAfterUnmap == 0);
-    out::setColor(Color::white, Color::blue);
 
     pmm::freePage(phys);
 
     out::println("\n========================");
     out::println("VMM TEST COMPLETE");
+
+    time::wait(3000);
+}
+
+void tests::mallocTest() {
+    out::setColor(Color::white, Color::blue);
+    out::clear();
+
+    out::println("TEST: KERNEL HEAP TEST");
+    out::println("========================");
+
+    out::print("Heap used: ");
+    out::printNumber(memory::heap::getUsedMemory());
+    out::println("");
+
+    out::print("Heap free: ");
+    out::printNumber(memory::heap::getFreeMemory());
+    out::println("");
+
+    void* a = memory::alloc(64);
+    void* b = memory::alloc(128);
+
+    out::println("\nPOST MALLOC");
+
+    out::print("a: ");
+    out::printNumber(reinterpret_cast<u64>(a));
+    out::println("");
+
+    out::print("b: ");
+    out::printNumber(reinterpret_cast<u64>(b));
+    out::println("");
+
+    TEST_RESULT(a != nullptr);
+    TEST_RESULT(b != nullptr);
+    TEST_RESULT(a != b);
+
+    u64* x = static_cast<u64*>(a);
+    *x = 0x123456789ABCDEF0;
+
+    TEST_RESULT(*x == 0x123456789ABCDEF0);
+
+    memory::free(a);
+
+    void* c = memory::alloc(32);
+
+    out::println("\nPOST FREE + MALLOC");
+
+    out::print("c: ");
+    out::printNumber((u64)c);
+    out::println("");
+
+    TEST_RESULT(c == a);
+
+    memory::free(b);
+    memory::free(c);
+
+    out::println("\nFINAL HEAP STATS");
+
+    out::print("Heap used: ");
+    out::printNumber(memory::heap::getUsedMemory());
+    out::println("");
+
+    out::print("Heap free: ");
+    out::printNumber(memory::heap::getFreeMemory());
+    out::println("");
 
     time::wait(3000);
 }

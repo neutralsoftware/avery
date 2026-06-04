@@ -72,7 +72,7 @@ u64* vmm::getPte(PageTable* pml4, virtAddr virt, bool create) {
         return nullptr;
     }
 
-    PageTable* pt = getNextTable(pd, PDPT_INDEX(virt), create);
+    PageTable* pt = getNextTable(pd, PT_INDEX(virt), create);
 
     if (!pt) {
         return nullptr;

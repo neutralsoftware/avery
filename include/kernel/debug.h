@@ -60,11 +60,13 @@ if (expr) {                                    \
 out::setColor(Color::green, Color::blue); \
 out::println("========================"); \
 out::println("TEST SUCCEEDED"); \
+out::setColor(Color::white, Color::blue); \
 }                                                 \
 else { \
 out::setColor(Color::red, Color::blue); \
 out::println("========================"); \
 out::println("TEST FAILED"); \
+out::setColor(Color::white, Color::blue); \
 } \
 } while (0)
 

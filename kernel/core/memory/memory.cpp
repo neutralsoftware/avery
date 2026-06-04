@@ -38,11 +38,14 @@ void memory::initMemoryServices(volatile struct limine_memmap_request& request) 
     ASSERT(request.response != nullptr);
     pmm::init(request);
     debug::log("Initialized Physical Memory");
-    io::serialWrite("Available pages: ");
+    io::serialWrite("[LOG] Available pages: ");
     io::serialWriteNumber(pmm::physicalMemory.totalPages);
     io::serialWrite("\n");
 
     vmm::init();
     debug::log("Initialized Virtual Memory");
+
+    heap::init();
+    debug::log("Initialized Heap");
 }
 

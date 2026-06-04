@@ -29,8 +29,8 @@ practices while remaining approachable to contributors and learners alike.
 - [x] Limine Memory map parsing
 - [x] Physical memory manager
 - [x] Virtual memory manager
-- [ ] Kernel heap (malloc, free)
-- [ ] Move to Limine 6 (APIC or x2APIC)
+- [x] Kernel heap (malloc, free)
+- [ ] Create classes and helpers with the heap
 
 ### Internal Driver Framework
 
@@ -39,6 +39,7 @@ practices while remaining approachable to contributors and learners alike.
 - [ ] Driver lifecycle
 - [ ] MMIO port I/O helpers
 - [ ] Block device abstraction
+- [ ] Move to Limine 6 barely (APIC or x2APIC mapped to legacy PIC)
 
 ### Hardware discovery
 
@@ -81,7 +82,7 @@ practices while remaining approachable to contributors and learners alike.
 
 - [ ] ACPI
 - [ ] MADT parsing
-- [ ] x2APIC
+- [ ] x2APIC and APIC
 - [ ] APIC timer
 - [ ] IPIs
 
