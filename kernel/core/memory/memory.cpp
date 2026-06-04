@@ -13,6 +13,7 @@
 #include "io/serial.h"
 #include "kernel/debug.h"
 #include "kernel/memory/physicalMemory.h"
+#include "kernel/memory/virtualMemory.h"
 
 u64 HHDMOffset = 0;
 
@@ -40,4 +41,8 @@ void memory::initMemoryServices(volatile struct limine_memmap_request& request) 
     io::serialWrite("Available pages: ");
     io::serialWriteNumber(pmm::physicalMemory.totalPages);
     io::serialWrite("\n");
+
+    vmm::init();
+    debug::log("Initialized Virtual Memory");
 }
+

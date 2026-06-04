@@ -12,6 +12,7 @@
 
 namespace tests {
     void pmmTest();
+    void vmmTest();
     void runAllMemoryTests();
 }
 

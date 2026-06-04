@@ -26,9 +26,9 @@ practices while remaining approachable to contributors and learners alike.
 
 ### Memory
 
-- [ ] Limine Memory map parsing
-- [ ] Physical memory manager
-- [ ] Virtual memory manager
+- [x] Limine Memory map parsing
+- [x] Physical memory manager
+- [x] Virtual memory manager
 - [ ] Kernel heap (malloc, free)
 - [ ] Move to Limine 6 (APIC or x2APIC)
 

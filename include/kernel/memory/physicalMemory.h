@@ -62,7 +62,11 @@ namespace pmm {
     u64 getFreeMemory();
 
     inline void* physicalToVirtual(physAddr p) {
-        return (void*)(p + memory::getHHDMOffset());
+        return reinterpret_cast<void*>(p + memory::getHHDMOffset());
+    }
+
+    inline physAddr virtualToPhysicalHHDM(void* v) {
+        return reinterpret_cast<u64>(v) - memory::getHHDMOffset();
     }
 
     inline physAddr pageToPhysical(u64 page) {
