@@ -124,7 +124,6 @@ public:
     static bool tryBind(Driver& driver);
     static void unbind(Device& device);
 
-private:
     static constexpr usize MaxDrivers = 128;
     static Driver* drivers[MaxDrivers];
     static usize driverCount;

@@ -153,7 +153,7 @@ namespace {
     class KeyboardDriver final : public Driver {
     public:
         string name() const override {
-            return "ps2-keyboard";
+            return "PS/2 Keyboard - Avery";
         }
 
         bool probe(Device& device) override {

@@ -205,4 +205,12 @@ extern "C" [[noreturn]] void __cxa_pure_virtual() {
     }
 }
 
+extern "C" void* memset(void* dest, int value, usize count) {
+    auto* p = static_cast<unsigned char*>(dest);
 
+    for (usize i = 0; i < count; i++) {
+        p[i] = static_cast<unsigned char>(value);
+    }
+
+    return dest;
+}

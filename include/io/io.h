@@ -32,9 +32,21 @@ namespace io {
         return val;
     }
 
+    inline void wait() {
+        outb(0x80, 0);
+    }
+
     inline void outl(u16 port, u32 value) {
         asm volatile(
             "outl %0, %1"
+            :
+            : "a"(value), "Nd"(port)
+        );
+    }
+
+    inline void outw(u16 port, u16 value) {
+        asm volatile(
+            "outw %0, %1"
             :
             : "a"(value), "Nd"(port)
         );
@@ -45,6 +57,18 @@ namespace io {
 
         asm volatile(
             "inl %1, %0"
+            : "=a"(val)
+            : "Nd"(port)
+        );
+
+        return val;
+    }
+
+    inline u16 inw(u16 port) {
+        u16 val;
+
+        asm volatile(
+            "inw %1, %0"
             : "=a"(val)
             : "Nd"(port)
         );

@@ -9,8 +9,10 @@
 
 #include <drivers/driver.h>
 
+#include "drivers/ata.h"
 #include "drivers/keyboard.h"
 #include "drivers/pit.h"
+#include "kernel/debug.h"
 
 Device* DeviceManager::devices[MaxDevices] = {};
 usize DeviceManager::s_deviceCount = 0;
@@ -184,4 +186,10 @@ void drivers::init() {
     time::registerDevice();
     keyboard::registerDriver();
     keyboard::registerDevice();
+    ata::registerDriver();
+
+    for (usize i = 0; i < DriverManager::driverCount; i++) {
+        auto* driver = DriverManager::drivers[i];
+        debug::log("Registered driver ", i, ": ", driver->name());
+    }
 }
