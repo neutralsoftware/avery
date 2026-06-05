@@ -32,13 +32,17 @@ void out::initFramebufferConsole(const Framebuffer& framebuffer) {
     GlobalFramebufferConsole = consoleMemory;
 }
 
-void out::print(string str) {
+void out::print(cstring str) {
     if (outputMode == ConsoleOutputMode::Framebuffer && consoleAccess != nullptr) {
         consoleAccess->write(str);
     }
     else {
         io::serialWrite(str);
     }
+}
+
+void out::print(const string& str) {
+    print(str.cStr());
 }
 
 void out::clear() {
@@ -49,7 +53,7 @@ void out::clear() {
     }
 }
 
-void out::println(string str) {
+void out::println(cstring str) {
     if (outputMode == ConsoleOutputMode::Framebuffer && consoleAccess != nullptr) {
         consoleAccess->writeLn(str);
     }
@@ -57,6 +61,10 @@ void out::println(string str) {
         io::serialWrite(str);
         io::serialWrite("\n");
     }
+}
+
+void out::println(const string& str) {
+    println(str.cStr());
 }
 
 void out::setColor(Color fg, Color bg) {
@@ -104,16 +112,16 @@ void out::printHex(u64 num) {
     print(hex);
 }
 
-void out::printNumber(u32 num) {
-    char buffer[11];
-    usize index = 10;
+void out::printNumber(u64 num) {
+    char buffer[21];
+    usize index = 20;
 
     buffer[index] = '\0';
 
     do {
         index--;
         buffer[index] = static_cast<char>('0' + (num % 10));
-        num = num / 10;
+        num /= 10;
     }
     while (num != 0);
 
@@ -132,9 +140,8 @@ char in::getChar() {
     return keyboard::getChar();
 }
 
-string in::getLine(string prompt) {
-    static char buffer[256];
-    usize length = 0;
+string in::getLine(cstring prompt) {
+    string line;
 
     if (prompt != nullptr) {
         out::print(prompt);
@@ -145,16 +152,15 @@ string in::getLine(string prompt) {
 
         if (c == '\n') {
             out::putChar('\n');
-            buffer[length] = '\0';
-            return buffer;
+            return line;
         }
 
         if (c == '\b') {
-            if (length > 0) {
-                --length;
+            if (!line.empty()) {
+                char removed = line.popBack();
 
                 if (out::outputMode == ConsoleOutputMode::Framebuffer && GlobalFramebufferConsole != nullptr) {
-                    GlobalFramebufferConsole->backspace(buffer[length]);
+                    GlobalFramebufferConsole->backspace(removed);
                 }
                 else {
                     out::putChar('\b');
@@ -164,10 +170,7 @@ string in::getLine(string prompt) {
             continue;
         }
 
-        if (length < 255) {
-            buffer[length] = c;
-            ++length;
-            out::putChar(c);
-        }
+        line.append(c);
+        out::putChar(c);
     }
 }

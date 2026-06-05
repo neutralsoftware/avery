@@ -31,7 +31,7 @@ namespace {
         }
 
         if (c == ' ') {
-            return 4;
+            return 5;
         }
 
         const u8* glyph = font8x16[c - FONT_FIRST];
@@ -50,13 +50,13 @@ namespace {
         }
 
         if (maxCol < 0) {
-            return 4;
+            return 5;
         }
 
-        u64 advance = static_cast<u64>(maxCol) + 2;
+        u64 advance = static_cast<u64>(maxCol) + 3;
 
-        if (advance > FONT_WIDTH) {
-            return FONT_WIDTH;
+        if (advance > FONT_WIDTH + 1) {
+            return FONT_WIDTH + 1;
         }
 
         return advance;
@@ -437,14 +437,14 @@ void FramebufferConsole::putChar(char c) {
     }
 }
 
-void FramebufferConsole::write(string str) {
+void FramebufferConsole::write(cstring str) {
     while (*str) {
         putChar(*str);
         str++;
     }
 }
 
-void FramebufferConsole::writeLn(string str) {
+void FramebufferConsole::writeLn(cstring str) {
     while (*str) {
         putChar(*str);
         str++;

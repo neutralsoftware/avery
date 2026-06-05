@@ -10,7 +10,10 @@
 #include <limine.h>
 #include <kernel/memory.h>
 
+#include "io/serial.h"
 #include "kernel/debug.h"
+#include "kernel/memory/physicalMemory.h"
+#include "kernel/memory/virtualMemory.h"
 
 u64 HHDMOffset = 0;
 
@@ -30,3 +33,19 @@ u64 memory::getHHDMOffset() {
     EXPECT(HHDMOffset != 0);
     return HHDMOffset;
 }
+
+void memory::initMemoryServices(volatile struct limine_memmap_request& request) {
+    ASSERT(request.response != nullptr);
+    pmm::init(request);
+    debug::log("Initialized Physical Memory");
+    io::serialWrite("[LOG] Available pages: ");
+    io::serialWriteNumber(pmm::physicalMemory.totalPages);
+    io::serialWrite("\n");
+
+    vmm::init();
+    debug::log("Initialized Virtual Memory");
+
+    heap::init();
+    debug::log("Initialized Heap");
+}
+

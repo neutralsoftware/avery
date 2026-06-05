@@ -53,6 +53,23 @@ debug::error(                                  \
 }                                                 \
 } while (0)
 
+#define TEST_RESULT(expr) \
+do \
+{                                                  \
+if (expr) {                                    \
+out::setColor(Color::green, Color::blue); \
+out::println("========================"); \
+out::println("TEST SUCCEEDED"); \
+out::setColor(Color::white, Color::blue); \
+}                                                 \
+else { \
+out::setColor(Color::red, Color::blue); \
+out::println("========================"); \
+out::println("TEST FAILED"); \
+out::setColor(Color::white, Color::blue); \
+} \
+} while (0)
+
 #ifndef NDEBUG
 #define ASSERT(expr) VERIFY(expr)
 #else
@@ -65,6 +82,10 @@ namespace debug {
     void log(const char* message, LogType logType = LogType::Serial);
     void warn(const char* message, LogType logType = LogType::Serial);
     void error(const char* message, LogType logType = LogType::Serial);
+
+    inline void serialError(const char* message) {
+        error(message, LogType::Serial);
+    }
 
     struct StackFrame {
         StackFrame* rbp;

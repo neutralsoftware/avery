@@ -45,8 +45,8 @@ public:
 
     void clear();
     void putChar(char c);
-    void write(string str);
-    void writeLn(string str);
+    void write(cstring str);
+    void writeLn(cstring str);
     void newline();
     void backspace();
     void backspace(char c);
