@@ -35,7 +35,10 @@ namespace irq {
 
     void installHandler(int irq, IRQHandler);
     void uninstallHandler(int irq);
-    void remap();
+
+    void enable(int irq);
+    void disable(int irq);
+    void eoi(int irq);
 }
 
 namespace core {

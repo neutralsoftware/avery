@@ -68,7 +68,7 @@ T alignUp(T x, T a) {
 template <typename T>
     requires ByteNumber<T>
 T alignDown(T x, T a) {
-    return (x + a - 1) & ~(a - 1);
+    return x & ~(a - 1);
 }
 
 template <typename T>
@@ -585,5 +585,6 @@ private:
         }
     }
 };
+
 
 #endif //AVERY_TYPES_H

@@ -11,14 +11,12 @@
 #include "kernel/debug.h"
 #include <core/systems.h>
 
-#include "core/apic.h"
 #include "core/idt.h"
 #include "core/irq.h"
 #include "core/isr.h"
-#include "drivers/keyboard.h"
-#include "drivers/pit.h"
+#include "kernel/memory.h"
 
-void core::initSystems() {
+void core::initSystems(volatile struct limine_memmap_request& request) {
     initGdt();
     debug::log("Initialized GDT");
     initIdt();
@@ -26,17 +24,10 @@ void core::initSystems() {
     initIsrs();
     debug::log("All ISRs bound correctly");
 
-    //lapic::initBase();
-    //lapic::enable();
-    //lapic::enableLegacyMode();
-    debug::log("Using PIC Legacy Mode");
+    memory::initMemoryServices(request);
 
     initIrq();
     debug::log("All IRQs bound correctly");
-    initPit();
-    debug::log("The Timer is initialized correctly");
-    keyboard::init();
-    debug::log("The Keyboard is initialized correctly");
 
     asm volatile("sti");
 }

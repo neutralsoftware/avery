@@ -10,6 +10,7 @@
 #ifndef AVERY_KEYBOARD_H
 #define AVERY_KEYBOARD_H
 #include "../core/isr.h"
+#include "driver.h"
 
 namespace keyboard {
     extern const unsigned char es[128];
@@ -20,6 +21,8 @@ namespace keyboard {
     char getChar();
     void handler(isr::Registers* regs);
     void init();
+    bool registerDriver();
+    bool registerDevice();
 }
 
 #endif //AVERY_KEYBOARD_H

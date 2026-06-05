@@ -4,14 +4,14 @@
 #include "../include/kernel/console.h"
 #include "core/regs.h"
 #include "core/systems.h"
-#include "drivers/pit.h"
+#include "drivers/driver.h"
 #include "graphics/framebuffer.h"
 #include "io/serial.h"
 #include "kernel/debug.h"
 #include "kernel/memory.h"
 
 __attribute__((used, section(".limine_requests")))
-static volatile uint64_t limine_base_revision[] = LIMINE_BASE_REVISION(4);
+static volatile uint64_t limine_base_revision[] = LIMINE_BASE_REVISION(6);
 
 __attribute__((used, section(".limine_requests")))
 static volatile struct limine_framebuffer_request framebuffer_request = {
@@ -50,8 +50,9 @@ extern "C" [[noreturn]] void _start() {
     memory::setHHDM(hddm_request);
 
     regs::enableSSE();
-    core::initSystems();
-    memory::initMemoryServices(memmap_request);
+    core::initSystems(memmap_request);
+    drivers::init();
+    debug::log("Drivers initialized");
 
     Framebuffer framebuffer = Framebuffer::createFromLimineRequest(framebuffer_request);
     out::initFramebufferConsole(framebuffer);
