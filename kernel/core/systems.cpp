@@ -14,6 +14,7 @@
 #include "core/idt.h"
 #include "core/irq.h"
 #include "core/isr.h"
+#include "drivers/pci.h"
 #include "kernel/memory.h"
 
 void core::initSystems(volatile struct limine_memmap_request& request) {
@@ -28,6 +29,9 @@ void core::initSystems(volatile struct limine_memmap_request& request) {
 
     initIrq();
     debug::log("All IRQs bound correctly");
+
+    pci::enumerateAndCreateDevices();
+    debug::log("Enumerated and created all PCI devices");
 
     asm volatile("sti");
 }

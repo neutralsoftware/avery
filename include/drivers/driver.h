@@ -75,12 +75,6 @@ public:
     virtual int write(const u8* buffer, usize size) = 0;
 };
 
-class PCIDevice : public Device {
-public:
-    PCIDevice(string name, DeviceType type) : Device(name, type) {
-    }
-};
-
 class Driver {
 public:
     Driver() = default;
