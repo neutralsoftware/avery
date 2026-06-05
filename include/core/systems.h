@@ -10,8 +10,11 @@
 #ifndef AVERY_SYSTEMS_H
 #define AVERY_SYSTEMS_H
 
+struct limine_memmap_request;
+
+
 namespace core {
-    void initSystems();
+    void initSystems(volatile struct limine_memmap_request& request);
 }
 
 #endif //AVERY_SYSTEMS_H

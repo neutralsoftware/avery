@@ -10,7 +10,6 @@
 #include <types.h>
 #include <drivers/driver.h>
 
-#include "kernel/debug.h"
 #include "kernel/memory/virtualMemory.h"
 
 static virtAddr nextMMIOVirt = 0xFFFF900000000000ull;
@@ -38,7 +37,12 @@ mmio::Interface::Interface(physAddr physical, usize size) {
         flags
     );
 
-    ASSERT(ok);
+    if (!ok) {
+        mappingBase = 0;
+        mappedSize = 0;
+        base = 0;
+        return;
+    }
 
     base = mappingBase + offset;
 }

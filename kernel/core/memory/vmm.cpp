@@ -72,13 +72,13 @@ u64* vmm::getPte(PageTable* pml4, virtAddr virt, bool create) {
         return nullptr;
     }
 
-    PageTable* pt = getNextTable(pd, PT_INDEX(virt), create);
+    PageTable* pt = getNextTable(pd, PD_INDEX(virt), create);
 
     if (!pt) {
         return nullptr;
     }
 
-    return &pt->entries[PDPT_INDEX(virt)];
+    return &pt->entries[PT_INDEX(virt)];
 }
 
 bool vmm::mapPage(PageTable* pml4, virtAddr virt, physAddr phys, u64 flags) {
@@ -97,6 +97,8 @@ bool vmm::mapPage(PageTable* pml4, virtAddr virt, physAddr phys, u64 flags) {
     }
 
     *pte = (phys & PTE_ADDR_MASK) | flags | PTE_PRESENT;
+
+    asm volatile("invlpg (%0)" :: "r"(virt) : "memory");
 
     return true;
 }

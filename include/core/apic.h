@@ -12,28 +12,37 @@
 #include "../types.h"
 
 namespace lapic {
-    inline u64 rdmsr(u32 msr) {
-        u32 lo, hi;
-        asm volatile("rdmsr" : "=a"(lo), "=d"(hi) : "c"(msr));
-        return (static_cast<u64>(hi) << 32) | lo;
-    }
+    bool init();
+    void eoi();
 
-    inline void wrmsr(u32 msr, u64 value) {
-        u32 lo = value & 0xffffffff;
-        u32 hi = value >> 32;
+    u32 id();
+}
 
-        asm volatile("wrmsr" : : "c"(msr), "a"(lo), "d"(hi));
-    }
+namespace ioapic {
+    bool init(physAddr physicalBase);
 
-    void initBase();
-    void write(u32 reg, u32 value);
-    u32 read(u32 reg);
+    u32 read(u8 reg);
+    void write(u8 reg, u32 value);
 
-    constexpr u32 LAPIC_SRV = 0xF0;
-    void enable();
+    void redirectIRQ(u8 irq, u8 vector, u8 lapicId);
+    void maskIRQ(u8 irq);
+    void unmaskIRQ(u8 irq);
+}
 
-    constexpr u32 LAPIC_LVT_LINT0 = 0x350;
-    void enableLegacyMode();
+namespace interruptController {
+    enum class Backend {
+        PIC,
+        APIC
+    };
+
+    void initPIC();
+    void initAPICCompat();
+
+    void enableIRQ(u8 irq);
+    void disableIRQ(u8 irq);
+    void eoi(u8 irq);
+
+    Backend currentBackend();
 }
 
 #endif //AVERY_APIC_H

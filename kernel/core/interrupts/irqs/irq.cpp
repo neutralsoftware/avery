@@ -9,6 +9,7 @@
 
 #include "core/irq.h"
 
+#include "core/apic.h"
 #include "core/idt.h"
 #include "io/io.h"
 
@@ -19,28 +20,27 @@ irq::IRQHandler irq_routines[16] = {
 
 void irq::installHandler(int irq, IRQHandler handler) {
     irq_routines[irq] = handler;
+    enable(irq);
 }
 
 void irq::uninstallHandler(int irq) {
+    disable(irq);
     irq_routines[irq] = nullptr;
 }
 
-void irq::remap() {
-    io::outb(0x20, 0x11);
-    io::outb(0xA0, 0x11);
-    io::outb(0x21, 0x20);
-    io::outb(0xA1, 0x28);
-    io::outb(0x21, 0x04);
-    io::outb(0xA1, 0x02);
-    io::outb(0x21, 0x01);
-    io::outb(0xA1, 0x01);
-    io::outb(0x21, 0x0);
-    io::outb(0xA1, 0x0);
+void irq::enable(int irq) {
+    interruptController::enableIRQ(static_cast<u8>(irq));
+}
+
+void irq::disable(int irq) {
+    interruptController::disableIRQ(static_cast<u8>(irq));
+}
+
+void irq::eoi(int irq) {
+    interruptController::eoi(static_cast<u8>(irq));
 }
 
 void core::initIrq() {
-    irq::remap();
-
     idt::setGate(32, reinterpret_cast<uptr>(irq::irq0), 0x08, 0x8E);
     idt::setGate(33, reinterpret_cast<uptr>(irq::irq1), 0x08, 0x8E);
     idt::setGate(34, reinterpret_cast<uptr>(irq::irq2), 0x08, 0x8E);
@@ -57,16 +57,21 @@ void core::initIrq() {
     idt::setGate(45, reinterpret_cast<uptr>(irq::irq13), 0x08, 0x8E);
     idt::setGate(46, reinterpret_cast<uptr>(irq::irq14), 0x08, 0x8E);
     idt::setGate(47, reinterpret_cast<uptr>(irq::irq15), 0x08, 0x8E);
+
+    interruptController::initAPICCompat();
 }
 
 extern "C" void irq_handler(isr::Registers* regs) {
-    if (irq::IRQHandler handler = irq_routines[regs->int_no - 32]) {
+    u64 vector = regs->int_no;
+
+    if (vector < 32 || vector > 47)
+        return;
+
+    u8 irqNumber = static_cast<u8>(vector - 32);
+
+    if (irq::IRQHandler handler = irq_routines[irqNumber]) {
         handler(regs);
     }
 
-    if (regs->int_no >= 40) {
-        io::outb(0xA0, 0x20);
-    }
-
-    io::outb(0x20, 0x20);
+    irq::eoi(irqNumber);
 }

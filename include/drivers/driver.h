@@ -154,6 +154,10 @@ namespace mmio {
         template <typename T>
             requires ByteNumber<T>
         T read(uptr offset) const {
+            if (!base) {
+                return T{};
+            }
+
             return *reinterpret_cast<volatile T*>(
                 base + offset
             );
@@ -162,6 +166,10 @@ namespace mmio {
         template <typename T>
             requires ByteNumber<T>
         void write(uptr offset, T value) {
+            if (!base) {
+                return;
+            }
+
             *reinterpret_cast<volatile T*>(
                 base + offset
             ) = value;
@@ -169,6 +177,10 @@ namespace mmio {
 
         uptr address() const {
             return base;
+        }
+
+        bool isValid() const {
+            return base != 0;
         }
 
     private:
