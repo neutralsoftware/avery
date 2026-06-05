@@ -44,7 +44,7 @@ public:
     Driver* driver = nullptr;
     Device* parent = nullptr;
 
-private:
+protected:
     string deviceName;
     DeviceType deviceType;
 };
@@ -73,12 +73,6 @@ public:
 
     virtual int read(u8* buffer, usize size) = 0;
     virtual int write(const u8* buffer, usize size) = 0;
-};
-
-class PCIDevice : public Device {
-public:
-    PCIDevice(string name, DeviceType type) : Device(name, type) {
-    }
 };
 
 class Driver {

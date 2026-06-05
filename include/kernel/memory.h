@@ -76,6 +76,29 @@ namespace memory {
     UniquePtr<T> makeUnique(Args&&... args) {
         return UniquePtr<T>(new T(static_cast<Args&&>(args)...));
     }
+
+    template <typename T>
+    struct RemoveReference {
+        using type = T;
+    };
+
+    template <typename T>
+    struct RemoveReference<T&> {
+        using type = T&;
+    };
+
+    template <typename T>
+    struct RemoveReference<T&&> {
+        using type = T;
+    };
+
+    template <typename T>
+    using RemoveReferenceType = typename RemoveReference<T>::type;
+
+    template <typename T>
+    constexpr RemoveReferenceType<T>&& move(T&& value) noexcept {
+        return static_cast<RemoveReferenceType<T>&&>(value);
+    }
 }
 
 void* operator new(usize size);

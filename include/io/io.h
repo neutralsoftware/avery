@@ -31,5 +31,25 @@ namespace io {
 
         return val;
     }
+
+    inline void outl(u16 port, u32 value) {
+        asm volatile(
+            "outl %0, %1"
+            :
+            : "a"(value), "Nd"(port)
+        );
+    }
+
+    inline u32 inl(u16 port) {
+        u32 val;
+
+        asm volatile(
+            "inl %1, %0"
+            : "=a"(val)
+            : "Nd"(port)
+        );
+
+        return val;
+    }
 }
 #endif //AVERY_IO_H

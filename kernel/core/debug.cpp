@@ -41,44 +41,114 @@ void debug::kernelPanic(const char* message, const char* file,
 }
 
 void debug::log(const char* message, LogType logType) {
-    if (logType == LogType::Serial) {
-        io::serialWrite("[LOG] ");
-        io::serialWrite(message);
-        io::serialWrite("\n");
-    }
-    else {
-        out::setColor(Color::green, Color::black);
-        out::print("[LOG]");
-        out::println(message);
-    }
+    log(logType, message);
 }
 
 
 void debug::warn(const char* message, LogType logType) {
-    if (logType == LogType::Serial) {
-        io::serialWrite("[WARNING] ");
-        io::serialWrite(message);
-        io::serialWrite("\n");
-    }
-    else {
-        out::setColor(Color::yellow, Color::black);
-        out::print("[WARNING] ");
-        out::println(message);
-    }
+    warn(logType, message);
 }
 
 
 void debug::error(const char* message, LogType logType) {
+    error(logType, message);
+}
+
+void debug::writePrefix(LogType logType, cstring prefix) {
     if (logType == LogType::Serial) {
-        io::serialWrite("[ERROR] ");
-        io::serialWrite(message);
-        io::serialWrite("\n");
+        io::serialWrite(prefix);
+        return;
+    }
+
+    if (prefix[1] == 'L') {
+        out::setColor(Color::green, Color::black);
+    }
+    else if (prefix[1] == 'W') {
+        out::setColor(Color::yellow, Color::black);
     }
     else {
         out::setColor(Color::red, Color::black);
-        out::print("[ERROR] ");
-        out::println(message);
     }
+
+    out::print(prefix);
+}
+
+void debug::writeValue(LogType logType, cstring value) {
+    if (logType == LogType::Serial) {
+        io::serialWrite(value);
+        return;
+    }
+
+    out::print(value);
+}
+
+void debug::writeValue(LogType logType, const string& value) {
+    writeValue(logType, value.cStr());
+}
+
+void debug::writeValue(LogType logType, char value) {
+    if (logType == LogType::Serial) {
+        io::serialWriteChar(value);
+        return;
+    }
+
+    out::putChar(value);
+}
+
+void debug::writeValue(LogType logType, bool value) {
+    writeValue(logType, value ? "true" : "false");
+}
+
+void debug::writeValue(LogType logType, u8 value) {
+    writeValue(logType, static_cast<u64>(value));
+}
+
+void debug::writeValue(LogType logType, u16 value) {
+    writeValue(logType, static_cast<u64>(value));
+}
+
+void debug::writeValue(LogType logType, u32 value) {
+    writeValue(logType, static_cast<u64>(value));
+}
+
+void debug::writeValue(LogType logType, u64 value) {
+    if (logType == LogType::Serial) {
+        io::serialWriteNumber(value);
+        return;
+    }
+
+    out::printNumber(value);
+}
+
+void debug::writeValue(LogType logType, i16 value) {
+    writeValue(logType, static_cast<i64>(value));
+}
+
+void debug::writeValue(LogType logType, i32 value) {
+    writeValue(logType, static_cast<i64>(value));
+}
+
+void debug::writeValue(LogType logType, i64 value) {
+    if (value < 0) {
+        writeValue(logType, '-');
+        writeValue(logType, static_cast<u64>(-(value + 1)) + 1);
+        return;
+    }
+
+    writeValue(logType, static_cast<u64>(value));
+}
+
+void debug::writeValue(LogType logType, const void* value) {
+    if (logType == LogType::Serial) {
+        io::serialWriteHex(reinterpret_cast<u64>(value));
+        return;
+    }
+
+    out::printHex(reinterpret_cast<u64>(value));
+}
+
+void debug::writeLineEnd(LogType logType) {
+    writeValue(logType, '\n');
 }
 
 void debug::stackTrace(LogType type) {
@@ -112,6 +182,5 @@ void debug::stackTrace(LogType type) {
         frame = frame->rbp;
     }
 }
-
 
 
