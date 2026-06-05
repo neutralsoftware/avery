@@ -56,15 +56,17 @@ extern "C" [[noreturn]] void _start() {
     Framebuffer framebuffer = Framebuffer::createFromLimineRequest(framebuffer_request);
     out::initFramebufferConsole(framebuffer);
 
-    tests::runAllMemoryTests();
-
     out::setColor(Color::white, Color::black);
     out::clear();
     out::println("The Avery Kernel");
     out::println("Version Alpha 1 (Development Edition)");
     out::println("Made by Max Van den Eynde in 2026");
-
     while (true) {
-        asm("hlt");
+        string input = in::getLine("> ");
+        if (input == "clear") {
+            out::clear();
+            continue;
+        }
+        out::println(input);
     }
 }

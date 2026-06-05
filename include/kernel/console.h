@@ -28,7 +28,9 @@ namespace out {
     extern ConsoleOutputMode outputMode;
     void initFramebufferConsole(const Framebuffer& framebuffer);
     void print(cstring str);
+    void print(const string& str);
     void println(cstring str);
+    void println(const string& str);
     void printHex(u64 num);
     void printNumber(u64 num);
     void putChar(char c);
@@ -42,7 +44,7 @@ namespace out {
 };
 
 namespace in {
-    cstring getLine(cstring prompt = nullptr);
+    string getLine(cstring prompt = nullptr);
     char getChar();
 }
 

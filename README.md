@@ -30,7 +30,7 @@ practices while remaining approachable to contributors and learners alike.
 - [x] Physical memory manager
 - [x] Virtual memory manager
 - [x] Kernel heap (malloc, free)
-- [ ] Create classes and helpers with the heap
+- [x] Create classes and helpers with the heap
 
 ### Internal Driver Framework
 

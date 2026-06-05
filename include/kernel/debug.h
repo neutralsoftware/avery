@@ -83,6 +83,10 @@ namespace debug {
     void warn(const char* message, LogType logType = LogType::Serial);
     void error(const char* message, LogType logType = LogType::Serial);
 
+    inline void serialError(const char* message) {
+        error(message, LogType::Serial);
+    }
+
     struct StackFrame {
         StackFrame* rbp;
         uptr rip;

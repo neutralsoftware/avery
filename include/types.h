@@ -9,7 +9,6 @@
 
 #ifndef AVERY_TYPES_H
 #define AVERY_TYPES_H
-#include "kernel/debug.h"
 
 using u8 = unsigned char;
 using u16 = unsigned short;
@@ -26,6 +25,10 @@ using i32 = int;
 using i64 = long long;
 
 using cstring = const char*;
+
+namespace debug {
+    void serialError(const char* message);
+}
 
 template <typename T>
 struct Tuple {
@@ -86,14 +89,14 @@ public:
 
     T& value() {
         if (!present) {
-            debug::error("Tried to access an option that had a null value");
+            debug::serialError("Tried to access an option that had a null value");
         }
         return storage;
     }
 
     const T& value() const {
         if (!present) {
-            debug::error("Tried to access an option that had a null value");
+            debug::serialError("Tried to access an option that had a null value");
         }
         return storage;
     }
@@ -133,14 +136,14 @@ public:
 
     T& value() {
         if (!present) {
-            debug::error("Tried to access an option that had a null value");
+            debug::serialError("Tried to access an option that had a null value");
         }
         return storage;
     }
 
     const T& value() const {
         if (!present) {
-            debug::error("Tried to access an option that had a null value");
+            debug::serialError("Tried to access an option that had a null value");
         }
         return storage;
     }
@@ -183,6 +186,7 @@ public:
     void clear();
     void append(cstring text);
     void append(char c);
+    char popBack();
 
     Option<char&> operator[](usize index);
     Option<const char&> operator[](usize index) const;

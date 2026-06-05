@@ -39,6 +39,7 @@ string::string(const string& other) {
 
     data = new char[capacity + 1];
     memory::copy(reinterpret_cast<u8*>(data), reinterpret_cast<const u8*>(other.data), static_cast<int>(len));
+    data[len] = '\0';
 }
 
 string::string(string&& other) noexcept {
@@ -142,6 +143,7 @@ void string::reserve(usize newCapacity) {
 
     char* newData = new char[newCapacity + 1];
     memory::copy(reinterpret_cast<u8*>(newData), reinterpret_cast<const u8*>(data), static_cast<int>(len));
+    newData[len] = '\0';
     delete[] data;
 
     data = newData;
@@ -153,6 +155,18 @@ void string::append(char c) {
     memory::copy(reinterpret_cast<u8*>(data) + len, reinterpret_cast<const u8*>(&c), 1);
     len++;
     data[len] = '\0';
+}
+
+char string::popBack() {
+    if (len == 0) {
+        return '\0';
+    }
+
+    len--;
+    char c = data[len];
+    data[len] = '\0';
+
+    return c;
 }
 
 void string::append(cstring text) {
@@ -184,6 +198,5 @@ Option<const char&> string::operator[](usize index) const {
 
     return data[index];
 }
-
 
 

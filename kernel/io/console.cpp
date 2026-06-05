@@ -41,6 +41,10 @@ void out::print(cstring str) {
     }
 }
 
+void out::print(const string& str) {
+    print(str.cStr());
+}
+
 void out::clear() {
     if (outputMode == ConsoleOutputMode::Framebuffer && consoleAccess != nullptr) {
         consoleAccess->clear();
@@ -57,6 +61,10 @@ void out::println(cstring str) {
         io::serialWrite(str);
         io::serialWrite("\n");
     }
+}
+
+void out::println(const string& str) {
+    println(str.cStr());
 }
 
 void out::setColor(Color fg, Color bg) {
@@ -132,9 +140,8 @@ char in::getChar() {
     return keyboard::getChar();
 }
 
-cstring in::getLine(cstring prompt) {
-    static char buffer[256];
-    usize length = 0;
+string in::getLine(cstring prompt) {
+    string line;
 
     if (prompt != nullptr) {
         out::print(prompt);
@@ -145,16 +152,15 @@ cstring in::getLine(cstring prompt) {
 
         if (c == '\n') {
             out::putChar('\n');
-            buffer[length] = '\0';
-            return buffer;
+            return line;
         }
 
         if (c == '\b') {
-            if (length > 0) {
-                --length;
+            if (!line.empty()) {
+                char removed = line.popBack();
 
                 if (out::outputMode == ConsoleOutputMode::Framebuffer && GlobalFramebufferConsole != nullptr) {
-                    GlobalFramebufferConsole->backspace(buffer[length]);
+                    GlobalFramebufferConsole->backspace(removed);
                 }
                 else {
                     out::putChar('\b');
@@ -164,10 +170,7 @@ cstring in::getLine(cstring prompt) {
             continue;
         }
 
-        if (length < 255) {
-            buffer[length] = c;
-            ++length;
-            out::putChar(c);
-        }
+        line.append(c);
+        out::putChar(c);
     }
 }
