@@ -140,4 +140,42 @@ namespace drivers {
     void init();
 }
 
+namespace mmio {
+    static constexpr u64 PageSize = 0x1000;
+
+    class Interface {
+    public:
+        Interface(physAddr physical, usize size);
+        ~Interface();
+
+        Interface(const Interface&) = delete;
+        Interface& operator=(const Interface&) = delete;
+
+        template <typename T>
+            requires ByteNumber<T>
+        T read(uptr offset) const {
+            return *reinterpret_cast<volatile T*>(
+                base + offset
+            );
+        }
+
+        template <typename T>
+            requires ByteNumber<T>
+        void write(uptr offset, T value) {
+            *reinterpret_cast<volatile T*>(
+                base + offset
+            ) = value;
+        }
+
+        uptr address() const {
+            return base;
+        }
+
+    private:
+        uptr base = 0;
+        virtAddr mappingBase = 0;
+        usize mappedSize = 0;
+    };
+}
+
 #endif //AVERY_DRIVER_H

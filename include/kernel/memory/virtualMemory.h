@@ -24,6 +24,9 @@ namespace vmm {
     constexpr u64 FlagPresent = 1ull << 0;
     constexpr u64 FlagWritable = 1ull << 1;
     constexpr u64 FlagUser = 1ull << 2;
+    constexpr u64 FlagWriteThrough = 1ull << 3;
+    constexpr u64 FlagCacheDisable = 1ull << 4;
+    constexpr u64 FlagGlobal = 1ull << 8;
     constexpr u64 FlagNX = 1ull << 63;
 
     void init();
