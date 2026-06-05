@@ -10,12 +10,15 @@
 #ifndef AVERY_PIT_H
 #define AVERY_PIT_H
 #include "../core/isr.h"
+#include "driver.h"
 
 extern "C" void time_handler(isr::Registers* regs);
 
 namespace time {
     u64 getUptime();
     void wait(u64 ticksMs);
+    bool registerDriver();
+    bool registerDevice();
 }
 
 namespace core {

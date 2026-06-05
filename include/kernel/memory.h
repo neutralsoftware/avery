@@ -37,7 +37,7 @@ namespace memory {
         u64 getUsedMemory();
         u64 getFreeMemory();
 
-        struct HeapBlock {
+        struct alignas(16) HeapBlock {
             u64 magic;
             u64 size;
             bool free;

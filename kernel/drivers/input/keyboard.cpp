@@ -144,6 +144,36 @@ namespace {
     bool shiftPressed = false;
     bool extendedScancode = false;
 
+    class KeyboardDevice final : public Device {
+    public:
+        KeyboardDevice() : Device("ps2-keyboard", DeviceType::Input) {
+        }
+    };
+
+    class KeyboardDriver final : public Driver {
+    public:
+        string name() const override {
+            return "ps2-keyboard";
+        }
+
+        bool probe(Device& device) override {
+            return device.type() == DeviceType::Input;
+        }
+
+        bool start(Device&) override {
+            irq::installHandler(1, &keyboard::handler);
+            return true;
+        }
+
+        bool stop(Device&) override {
+            irq::uninstallHandler(1);
+            return true;
+        }
+    };
+
+    KeyboardDriver* registeredDriver = nullptr;
+    KeyboardDevice* registeredDevice = nullptr;
+
     void enqueue(char c) {
         usize nextIndex = (writeIndex + 1) % BufferSize;
 
@@ -208,4 +238,20 @@ char keyboard::getChar() {
 
 void keyboard::init() {
     irq::installHandler(1, &handler);
+}
+
+bool keyboard::registerDriver() {
+    if (!registeredDriver) {
+        registeredDriver = new KeyboardDriver();
+    }
+
+    return DriverManager::registerDriver(registeredDriver);
+}
+
+bool keyboard::registerDevice() {
+    if (!registeredDevice) {
+        registeredDevice = new KeyboardDevice();
+    }
+
+    return DeviceManager::registerDevice(registeredDevice);
 }

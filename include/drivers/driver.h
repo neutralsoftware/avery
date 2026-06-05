@@ -15,6 +15,8 @@ enum class DeviceType {
     Unknown,
     Block,
     Character,
+    Timer,
+    Input,
     PCI,
 };
 
@@ -133,5 +135,9 @@ private:
     static Driver* drivers[MaxDrivers];
     static usize driverCount;
 };
+
+namespace drivers {
+    void init();
+}
 
 #endif //AVERY_DRIVER_H

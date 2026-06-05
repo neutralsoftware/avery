@@ -34,11 +34,11 @@ practices while remaining approachable to contributors and learners alike.
 
 ### Internal Driver Framework
 
-- [ ] Device objects
-- [ ] Driver registration
-- [ ] Driver lifecycle
+- [x] Device objects
+- [x] Driver registration
+- [x] Driver lifecycle
 - [ ] MMIO port I/O helpers
-- [ ] Block device abstraction
+- [x] Block device abstraction
 - [ ] Move to Limine 6 barely (APIC or x2APIC mapped to legacy PIC)
 
 ### Hardware discovery

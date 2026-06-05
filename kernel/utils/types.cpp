@@ -199,4 +199,10 @@ Option<const char&> string::operator[](usize index) const {
     return data[index];
 }
 
+extern "C" [[noreturn]] void __cxa_pure_virtual() {
+    while (true) {
+        asm volatile("hlt");
+    }
+}
+
 

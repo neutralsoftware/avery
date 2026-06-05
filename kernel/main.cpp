@@ -4,7 +4,7 @@
 #include "../include/kernel/console.h"
 #include "core/regs.h"
 #include "core/systems.h"
-#include "drivers/pit.h"
+#include "drivers/driver.h"
 #include "graphics/framebuffer.h"
 #include "io/serial.h"
 #include "kernel/debug.h"
@@ -52,6 +52,8 @@ extern "C" [[noreturn]] void _start() {
     regs::enableSSE();
     core::initSystems();
     memory::initMemoryServices(memmap_request);
+    drivers::init();
+    debug::log("Drivers initialized");
 
     Framebuffer framebuffer = Framebuffer::createFromLimineRequest(framebuffer_request);
     out::initFramebufferConsole(framebuffer);

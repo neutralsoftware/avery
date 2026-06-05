@@ -586,4 +586,5 @@ private:
     }
 };
 
+
 #endif //AVERY_TYPES_H
