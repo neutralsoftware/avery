@@ -43,8 +43,8 @@ practices while remaining approachable to contributors and learners alike.
 
 ### Hardware discovery
 
-- [ ] PCI enumeration
-- [ ] PCI BAR support
+- [x] PCI enumeration
+- [x] PCI BAR support
 
 ### Storage
 

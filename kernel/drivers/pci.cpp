@@ -16,7 +16,7 @@
 namespace pci {
     u32 read32(u8 bus, u8 slot, u8 function, u8 offset) {
         io::outl(ConfigAddress, configAddress(bus, slot, function, offset));
-        return io::inl(ConfigAddress);
+        return io::inl(ConfigData);
     }
 
     u16 read16(u8 bus, u8 slot, u8 function, u8 offset) {
@@ -26,12 +26,22 @@ namespace pci {
 
     u8 read8(u8 bus, u8 slot, u8 function, u8 offset) {
         u32 value = read32(bus, slot, function, offset);
-        return (value >> ((offset & 1) * 8)) & 0xFF;
+        return (value >> ((offset & 3) * 8)) & 0xFF;
     }
 
     void write32(u8 bus, u8 slot, u8 function, u8 offset, u32 value) {
         io::outl(ConfigAddress, configAddress(bus, slot, function, offset));
-        io::outl(ConfigAddress, value);
+        io::outl(ConfigData, value);
+    }
+
+    void write16(u8 bus, u8 slot, u8 function, u8 offset, u16 value) {
+        u32 old = read32(bus, slot, function, offset & 0xFC);
+        u32 shift = (offset & 2) * 8;
+
+        old &= ~(0xFFFFu << shift);
+        old |= (static_cast<u32>(value) << shift);
+
+        write32(bus, slot, function, offset & 0xFC, old);
     }
 
     void enumerateAndCreateDevices() {
@@ -68,9 +78,100 @@ namespace pci {
 
     void checkFunction(u8 bus, u8 slot, u8 function) {
         auto* device = new PCIDevice("", bus, slot, function);
-        debug::log("Registering ");
+        debug::log("Registering PCI device: BUS ", bus, " SLOT ", slot, " FUNCTION ", function, " NAME ",
+                   device->name());
 
         DeviceManager::registerDevice(device);
+    }
+
+    cstring className(u8 classCode) {
+        switch (classCode) {
+        case 0x00: return "Unclassified";
+        case 0x01: return "Mass Storage Controller";
+        case 0x02: return "Network Controller";
+        case 0x03: return "Display Controller";
+        case 0x04: return "Multimedia Controller";
+        case 0x05: return "Memory Controller";
+        case 0x06: return "Bridge Device";
+        case 0x07: return "Simple Communication Controller";
+        case 0x08: return "Base System Peripheral";
+        case 0x09: return "Input Device Controller";
+        case 0x0A: return "Docking Station";
+        case 0x0B: return "Processor";
+        case 0x0C: return "Serial Bus Controller";
+        case 0x0D: return "Wireless Controller";
+        case 0x0E: return "Intelligent Controller";
+        case 0x0F: return "Satellite Communication Controller";
+        case 0x10: return "Encryption Controller";
+        case 0x11: return "Signal Processing Controller";
+        case 0x12: return "Processing Accelerator";
+        case 0x13: return "Non-Essential Instrumentation";
+        case 0x40: return "Coprocessor";
+        case 0xFF: return "Vendor Specific or Unassigned";
+        default: return "Unknown";
+        }
+    }
+
+    cstring subclassName(u8 classCode, u8 subclass) {
+        switch (classCode) {
+        case 0x01:
+            switch (subclass) {
+            case 0x00: return "SCSI Storage Controller";
+            case 0x01: return "IDE Controller";
+            case 0x02: return "Floppy Disk Controller";
+            case 0x03: return "IPI Bus Controller";
+            case 0x04: return "RAID Controller";
+            case 0x05: return "ATA Controller";
+            case 0x06: return "SATA Controller";
+            case 0x07: return "Serial Attached SCSI Controller";
+            case 0x08: return "Non-Volatile Memory Controller";
+            default: return "Mass Storage Controller";
+            }
+
+        case 0x02:
+            switch (subclass) {
+            case 0x00: return "Ethernet Controller";
+            default: return "Network Controller";
+            }
+
+        case 0x03:
+            switch (subclass) {
+            case 0x00: return "VGA Compatible Controller";
+            case 0x01: return "XGA Controller";
+            case 0x02: return "3D Controller";
+            default: return "Display Controller";
+            }
+
+        case 0x06:
+            switch (subclass) {
+            case 0x00: return "Host Bridge";
+            case 0x01: return "ISA Bridge";
+            case 0x02: return "EISA Bridge";
+            case 0x03: return "MCA Bridge";
+            case 0x04: return "PCI-to-PCI Bridge";
+            case 0x05: return "PCMCIA Bridge";
+            case 0x06: return "NuBus Bridge";
+            case 0x07: return "CardBus Bridge";
+            case 0x08: return "RACEway Bridge";
+            default: return "Bridge Device";
+            }
+
+        case 0x0C:
+            switch (subclass) {
+            case 0x00: return "FireWire Controller";
+            case 0x01: return "ACCESS.bus Controller";
+            case 0x02: return "SSA Controller";
+            case 0x03: return "USB Controller";
+            case 0x04: return "Fibre Channel Controller";
+            case 0x05: return "SMBus Controller";
+            case 0x06: return "InfiniBand Controller";
+            case 0x07: return "IPMI Interface";
+            case 0x08: return "SERCOS Interface";
+            case 0x09: return "CANbus Controller";
+            default: return "Serial Bus Controller";
+            }
+        default: return "";
+        }
     }
 }
 
@@ -84,6 +185,16 @@ PCIDevice::PCIDevice(string name, u8 bus, u8 slot, u8 function) : Device(memory:
     pciProgIF = pci::read8(bus, slot, function, 0x09);
     pciSubClass = pci::read8(bus, slot, function, 0x0A);
     pciClassCode = pci::read8(bus, slot, function, 0x0B);
+
+    this->deviceName = "PCI Device / ";
+    this->deviceName.append(pci::className(pciClassCode));
+    cstring subclassNameCstr = pci::subclassName(pciClassCode, pciSubClass);
+    string subclassName = string(subclassNameCstr);
+    if (!subclassName.empty()) {
+        this->deviceName.append(" (");
+        this->deviceName.append(subclassNameCstr);
+        this->deviceName.append(")");
+    }
 
     pciInterruptLine = pci::read8(bus, slot, function, 0x3C);
     pciInterruptPin = pci::read8(bus, slot, function, 0x3D);
@@ -193,7 +304,7 @@ PCIBar PCIDevice::readBAR(u8 index) const {
 
     if (memoryType == 0x0) {
         result.type = PCIBarType::MMIO32;
-        result.address = original & 0xFull;
+        result.address = original & ~0xFull;
         result.size = ~(sizeMask & ~0xFu) + 1;
         return result;
     }
@@ -244,19 +355,19 @@ mmio::Interface* PCIDevice::mmioInterface() const {
 void PCIDevice::enableIOSpace() const {
     u16 command = pci::read16(pciBus, pciSlot, pciFunction, 0x4);
     command |= 1 << 0;
-    pci::write32(pciBus, pciSlot, pciFunction, 0x4, command);
+    pci::write16(pciBus, pciSlot, pciFunction, 0x4, command);
 }
 
 void PCIDevice::enableMemorySpace() const {
     u16 command = pci::read16(pciBus, pciSlot, pciFunction, 0x4);
     command |= 1 << 1;
-    pci::write32(pciBus, pciSlot, pciFunction, 0x4, command);
+    pci::write16(pciBus, pciSlot, pciFunction, 0x4, command);
 }
 
 void PCIDevice::enableBusMastering() const {
     u16 command = pci::read16(pciBus, pciSlot, pciFunction, 0x4);
     command |= 1 << 2;
-    pci::write32(pciBus, pciSlot, pciFunction, 0x4, command);
+    pci::write16(pciBus, pciSlot, pciFunction, 0x4, command);
 }
 
 bool PCIDevice::isClass(u8 classCode, u8 subClass) const {

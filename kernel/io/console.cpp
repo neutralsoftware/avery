@@ -45,6 +45,46 @@ void out::print(const string& str) {
     print(str.cStr());
 }
 
+void out::print(char c) {
+    putChar(c);
+}
+
+void out::print(bool value) {
+    print(value ? "true" : "false");
+}
+
+void out::print(u8 num) {
+    printNumber(num);
+}
+
+void out::print(u16 num) {
+    printNumber(num);
+}
+
+void out::print(u32 num) {
+    printNumber(num);
+}
+
+void out::print(u64 num) {
+    printNumber(num);
+}
+
+void out::print(i16 num) {
+    printSigned(num);
+}
+
+void out::print(i32 num) {
+    printSigned(num);
+}
+
+void out::print(i64 num) {
+    printSigned(num);
+}
+
+void out::print(const void* ptr) {
+    printHex(reinterpret_cast<u64>(ptr));
+}
+
 void out::clear() {
     if (outputMode == ConsoleOutputMode::Framebuffer && consoleAccess != nullptr) {
         consoleAccess->clear();
@@ -65,6 +105,10 @@ void out::println(cstring str) {
 
 void out::println(const string& str) {
     println(str.cStr());
+}
+
+void out::println() {
+    putChar('\n');
 }
 
 void out::setColor(Color fg, Color bg) {
@@ -126,6 +170,16 @@ void out::printNumber(u64 num) {
     while (num != 0);
 
     print(&buffer[index]);
+}
+
+void out::printSigned(i64 num) {
+    if (num < 0) {
+        putChar('-');
+        printNumber(static_cast<u64>(-(num + 1)) + 1);
+        return;
+    }
+
+    printNumber(static_cast<u64>(num));
 }
 
 char in::getChar() {

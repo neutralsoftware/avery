@@ -44,7 +44,7 @@ public:
     Driver* driver = nullptr;
     Device* parent = nullptr;
 
-private:
+protected:
     string deviceName;
     DeviceType deviceType;
 };

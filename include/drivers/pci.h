@@ -97,12 +97,16 @@ namespace pci {
     u16 read16(u8 bus, u8 slot, u8 function, u8 offset);
     u8 read8(u8 bus, u8 slot, u8 function, u8 offset);
     void write32(u8 bus, u8 slot, u8 function, u8 offset, u32 value);
+    void write16(u8 bus, u8 slot, u8 function, u8 offset, u16 value);
 
     void checkBus(u8 bus);
     void checkSlot(u8 bus, u8 slot);
     void checkFunction(u8 bus, u8 slot, u8 function);
 
     void enumerateAndCreateDevices();
+
+    cstring className(u8 classCode);
+    cstring subclassName(u8 classCode, u8 subClass);
 }
 
 #endif //AVERY_PCI_H
