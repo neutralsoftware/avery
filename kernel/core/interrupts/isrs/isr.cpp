@@ -14,7 +14,7 @@
 #include "kernel/console.h"
 #include "kernel/debug.h"
 
-string exception_messages[] = {
+cstring exception_messages[] = {
     "Division By Zero Exception",
     "Debug Exception",
     "Non Maskable Interrupt Exception",

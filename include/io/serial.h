@@ -13,7 +13,7 @@
 
 namespace io {
     void serialWriteChar(char c);
-    void serialWrite(string input);
+    void serialWrite(cstring input);
     void serialWriteHex(u64 num);
     void serialWriteNumber(u64 num);
 }

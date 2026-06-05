@@ -32,7 +32,7 @@ void out::initFramebufferConsole(const Framebuffer& framebuffer) {
     GlobalFramebufferConsole = consoleMemory;
 }
 
-void out::print(string str) {
+void out::print(cstring str) {
     if (outputMode == ConsoleOutputMode::Framebuffer && consoleAccess != nullptr) {
         consoleAccess->write(str);
     }
@@ -49,7 +49,7 @@ void out::clear() {
     }
 }
 
-void out::println(string str) {
+void out::println(cstring str) {
     if (outputMode == ConsoleOutputMode::Framebuffer && consoleAccess != nullptr) {
         consoleAccess->writeLn(str);
     }
@@ -132,7 +132,7 @@ char in::getChar() {
     return keyboard::getChar();
 }
 
-string in::getLine(string prompt) {
+cstring in::getLine(cstring prompt) {
     static char buffer[256];
     usize length = 0;
 

@@ -437,14 +437,14 @@ void FramebufferConsole::putChar(char c) {
     }
 }
 
-void FramebufferConsole::write(string str) {
+void FramebufferConsole::write(cstring str) {
     while (*str) {
         putChar(*str);
         str++;
     }
 }
 
-void FramebufferConsole::writeLn(string str) {
+void FramebufferConsole::writeLn(cstring str) {
     while (*str) {
         putChar(*str);
         str++;

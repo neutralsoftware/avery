@@ -27,8 +27,8 @@ extern FramebufferConsole* GlobalFramebufferConsole;
 namespace out {
     extern ConsoleOutputMode outputMode;
     void initFramebufferConsole(const Framebuffer& framebuffer);
-    void print(string str);
-    void println(string str);
+    void print(cstring str);
+    void println(cstring str);
     void printHex(u64 num);
     void printNumber(u64 num);
     void putChar(char c);
@@ -42,7 +42,7 @@ namespace out {
 };
 
 namespace in {
-    string getLine(string prompt = nullptr);
+    cstring getLine(cstring prompt = nullptr);
     char getChar();
 }
 

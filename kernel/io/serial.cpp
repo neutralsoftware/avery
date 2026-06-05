@@ -15,7 +15,7 @@ void io::serialWriteChar(char c) {
     outb(0xE9, static_cast<u8>(c));
 }
 
-void io::serialWrite(string input) {
+void io::serialWrite(cstring input) {
     while (*input) {
         serialWriteChar(*input);
         input++;

@@ -71,6 +71,11 @@ namespace memory {
     inline void* realloc(void* ptr, u64 newSize) {
         return heap::realloc(ptr, newSize);
     }
+
+    template <typename T, typename... Args>
+    UniquePtr<T> makeUnique(Args&&... args) {
+        return UniquePtr<T>(new T(static_cast<Args&&>(args)...));
+    }
 }
 
 void* operator new(usize size);
