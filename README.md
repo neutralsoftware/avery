@@ -51,9 +51,8 @@ practices while remaining approachable to contributors and learners alike.
 - [x] ATA driver
 - [x] Block device layer
 - [x] VFS
-- [ ] FAT32
-- [ ] ext2
-- [ ] Read & Write files
+- [x] FAT32
+- [x] Read & Write files
 
 ### Processes
 
