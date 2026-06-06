@@ -95,6 +95,7 @@ protected:
 };
 
 class FileHandle {
+public:
     FileHandle(VNode* node, VFSOpenMode mode) : handleNode(node), openMode(mode) {
     }
 
@@ -107,6 +108,8 @@ class FileHandle {
     virtual usize write(const void* buffer, usize size) = 0;
 
     virtual bool seek(u64 offset) = 0;
+    virtual bool truncate(u64 size) = 0;
+
     virtual u64 tell() const = 0;
     virtual u64 size() const = 0;
 
