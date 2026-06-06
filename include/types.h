@@ -138,21 +138,21 @@ public:
         if (!present) {
             debug::serialError("Tried to access an option that had a null value");
         }
-        return storage;
+        return *storage;
     }
 
     const T& value() const {
         if (!present) {
             debug::serialError("Tried to access an option that had a null value");
         }
-        return storage;
+        return *storage;
     }
 
     T valueOr(const T& fallback) const {
         if (!present) {
             return fallback;
         }
-        return storage;
+        return *storage;
     }
 
     static Option none() {
@@ -178,6 +178,8 @@ public:
 
     bool operator==(const string& other) const;
     bool operator!=(const string& other) const;
+
+    [[nodiscard]] bool startsWith(const string& other) const;
 
     [[nodiscard]] cstring cStr() const;
     [[nodiscard]] usize length() const;
@@ -476,6 +478,18 @@ public:
     void pop() {
         if (count == 0) {
             return;
+        }
+
+        count--;
+    }
+
+    void remove(usize index) {
+        if (index >= count) {
+            return;
+        }
+
+        for (usize i = index; i + 1 < count; i++) {
+            data[i] = static_cast<T&&>(data[i + 1]);
         }
 
         count--;

@@ -214,3 +214,13 @@ extern "C" void* memset(void* dest, int value, usize count) {
 
     return dest;
 }
+
+bool string::startsWith(const string& other) const {
+    if (len < other.len) return false;
+
+    for (usize i = 0; i < other.len; i++) {
+        if (data[i] != other.data[i]) return false;
+    }
+
+    return true;
+}

@@ -78,8 +78,8 @@ out::setColor(Color::white, Color::blue); \
 #endif
 
 namespace debug {
-    void kernelPanic(const char* message, const char* file, int line, const char* function,
-                     bool hlt = true);
+    [[noreturn]] void kernelPanic(const char* message, const char* file, int line, const char* function,
+                                  bool hlt = true);
     void log(const char* message, LogType logType = LogType::Serial);
     void warn(const char* message, LogType logType = LogType::Serial);
     void error(const char* message, LogType logType = LogType::Serial);
