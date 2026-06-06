@@ -25,6 +25,8 @@ namespace fat32 {
     constexpr u8 AttributeArchive = 0x20;
     constexpr u8 AttributeLongName = 0x0F;
 
+    constexpr u8 EntryDeleted = 0xE5;
+
     struct BIOSParameterBlock {
         u8 jump[3];
         char oemName[8];
@@ -135,12 +137,18 @@ public:
     u32 firstCluster() const { return nodeFirstCluster; }
     u64 size() const { return nodeSize; }
 
-    void setFirstCluster(u32 firstCluster) { nodeFirstCluster = firstCluster; }
-    void setSize(u64 size) { nodeSize = size; }
+    void setFirstCluster(u32 firstCluster);
+    void setSize(u64 size);
+
+    bool hasDirectoryEntry() const { return hasEntryInfo; }
+    const fat32::DirectoryEntryInfo& directoryEntry() const { return entryInfo; }
+    void setDirectoryEntry(const fat32::DirectoryEntryInfo& entry);
 
 private:
     u32 nodeFirstCluster;
     u64 nodeSize;
+    fat32::DirectoryEntryInfo entryInfo;
+    bool hasEntryInfo = false;
 };
 
 class FAT32FileHandle final : public FileHandle {
@@ -179,7 +187,6 @@ public:
     bool close() override;
 
 private:
-    FAT32FileSystem* fs;
     Vector<fat32::DirectoryEntryInfo> entries;
     usize index = 0;
     bool closed = false;
@@ -282,8 +289,8 @@ private:
     bool readFSInfo();
     bool loadRootNode();
 
-    bool readSectors(u64 sector, u32 count, void* buffer);
-    bool writeSectors(u64 sector, u32 count, const void* buffer);
+    bool readSectors(u64 sector, u32 count, void* buffer) const;
+    bool writeSectors(u64 sector, u32 count, const void* buffer) const;
 
     Vector<string> splitPath(const string& path) const;
 
@@ -300,6 +307,8 @@ private:
     u32 fatFirstDataSector = 0;
     u32 totalSectors = 0;
     u32 totalClusters = 0;
+
+    u16 signature = 0;
 
     FAT32VNode* root = nullptr;
 };

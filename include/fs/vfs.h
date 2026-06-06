@@ -11,6 +11,8 @@
 #define AVERY_VFS_H
 #include "../types.h"
 #include "../drivers/driver.h"
+#include "kernel/debug.h"
+#include "kernel/memory.h"
 
 enum class VFSNodeType {
     Unknown,
@@ -49,7 +51,7 @@ struct VFSError {
 
     Code code = None;
 
-    bool ok() const {
+    [[nodiscard]] bool ok() const {
         return code == None;
     }
 };
@@ -77,14 +79,14 @@ class FileHandle;
 
 class VNode {
 public:
-    VNode(string name, VFSNodeType type, FileSystem* fs) : nodeName(name), nodeType(type), ownerFs(fs) {
+    VNode(string name, VFSNodeType type, FileSystem* fs) : nodeName(memory::move(name)), nodeType(type), ownerFs(fs) {
     }
 
     virtual ~VNode() = default;
 
-    string name() const { return nodeName; }
-    VFSNodeType type() const { return nodeType; }
-    FileSystem* fileSystem() const { return ownerFs; }
+    [[nodiscard]] string name() const { return nodeName; }
+    [[nodiscard]] VFSNodeType type() const { return nodeType; }
+    [[nodiscard]] FileSystem* fileSystem() const { return ownerFs; }
 
     virtual bool stat(VFSStat& outStat) = 0;
 
@@ -101,8 +103,8 @@ public:
 
     virtual ~FileHandle() = default;
 
-    VNode* node() const { return handleNode; }
-    VFSOpenMode mode() const { return openMode; }
+    [[nodiscard]] VNode* node() const { return handleNode; }
+    [[nodiscard]] VFSOpenMode mode() const { return openMode; }
 
     virtual usize read(void* buffer, usize size) = 0;
     virtual usize write(const void* buffer, usize size) = 0;
@@ -110,8 +112,8 @@ public:
     virtual bool seek(u64 offset) = 0;
     virtual bool truncate(u64 size) = 0;
 
-    virtual u64 tell() const = 0;
-    virtual u64 size() const = 0;
+    [[nodiscard]] virtual u64 tell() const = 0;
+    [[nodiscard]] virtual u64 size() const = 0;
 
     virtual bool flush() = 0;
     virtual bool close() = 0;
@@ -140,13 +142,13 @@ class FileSystem {
 public:
     virtual ~FileSystem() = default;
 
-    virtual string name() const = 0;
+    [[nodiscard]] virtual string name() const = 0;
 
     virtual bool mount(BlockDevice* device) = 0;
     virtual bool unmount() = 0;
 
-    virtual bool isMounted() const = 0;
-    virtual bool isReadOnly() const = 0;
+    [[nodiscard]] virtual bool isMounted() const = 0;
+    [[nodiscard]] virtual bool isReadOnly() const = 0;
 
     virtual VNode* rootNode() = 0;
 
@@ -192,6 +194,27 @@ namespace vfs {
     bool rename(const string& oldPath, const string& newPath);
 
     Vector<MountPoint> mounts();
+
+    template <typename T>
+        requires DerivedFrom<T, FileSystem>
+    void mountRoot() {
+        init();
+
+        BlockDevice* device = drivers::firstBlockDevice();
+        if (!device) {
+            debug::serialError("No disk is present!");
+            return;
+        }
+
+        auto* fs = new T();
+
+        if (!mount("/", fs, device)) {
+            debug::serialError("Could not mount root");
+            return;
+        }
+
+        debug::log("Mounted root device with the appropiate file system");
+    }
 }
 
 

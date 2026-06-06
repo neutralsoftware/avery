@@ -139,6 +139,10 @@ bool ATADiskDevice::access(bool write, u64 lba, u32 count, void* buffer) {
 
         io::outb(ioBase + ATA_REG_COMMAND, write ? ATA_CMD_WRITE_PIO : ATA_CMD_READ_PIO);
 
+        if (!waitDRQ(ioBase)) {
+            return false;
+        }
+
         if (write) {
             for (usize i = 0; i < 256; i++) {
                 io::outw(ioBase + ATA_REG_DATA, words[sector * 256 + i]);

@@ -59,6 +59,9 @@ concept ByteNumber = requires(T a, T b) {
     a & b;
 };
 
+template <typename Base, typename Derived>
+concept DerivedFrom = __is_base_of(Derived, Base);
+
 template <typename T>
     requires ByteNumber<T>
 T alignUp(T x, T a) {
@@ -188,7 +191,13 @@ public:
     void clear();
     void append(cstring text);
     void append(char c);
+    void prepend(cstring text);
+    void prepend(char c);
     char popBack();
+
+    void removePrefix(cstring text);
+    void removeSuffix(cstring text);
+    void trim();
 
     Option<char&> operator[](usize index);
     Option<const char&> operator[](usize index) const;
@@ -339,8 +348,7 @@ public:
         if (head == tail) {
             head = nullptr;
             tail = nullptr;
-        }
-        else {
+        } else {
             tail = tail->prev;
             tail->next = nullptr;
         }
@@ -359,8 +367,7 @@ public:
         if (head == tail) {
             head = nullptr;
             tail = nullptr;
-        }
-        else {
+        } else {
             head = head->next;
             head->prev = nullptr;
         }
@@ -453,8 +460,63 @@ public:
         cap = 0;
     }
 
+    Vector(const Vector& other) {
+        data = nullptr;
+        count = 0;
+        cap = 0;
+
+        reserve(other.count);
+
+        for (usize i = 0; i < other.count; i++) {
+            push(other.data[i]);
+        }
+    }
+
+    Vector(Vector&& other) noexcept {
+        data = other.data;
+        count = other.count;
+        cap = other.cap;
+
+        other.data = nullptr;
+        other.count = 0;
+        other.cap = 0;
+    }
+
     ~Vector() {
         delete[] data;
+    }
+
+    Vector& operator=(const Vector& other) {
+        if (this == &other) {
+            return *this;
+        }
+
+        clear();
+        reserve(other.count);
+
+        for (usize i = 0; i < other.count; i++) {
+            push(other.data[i]);
+        }
+
+        return *this;
+    }
+
+    Vector& operator=(Vector&& other) noexcept {
+        if (this == &other) {
+            return *this;
+        }
+
+        delete[] data;
+
+        data = other.data;
+        count = other.count;
+        cap = other.cap;
+
+        other.data = nullptr;
+        other.count = 0;
+        other.cap = 0;
+
+        return *this;
     }
 
     void push(const T& value) {
@@ -593,8 +655,7 @@ private:
     void grow() {
         if (cap == 0) {
             reserve(4);
-        }
-        else {
+        } else {
             reserve(cap * 2);
         }
     }

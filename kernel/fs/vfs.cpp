@@ -12,7 +12,15 @@
 #include "kernel/debug.h"
 
 namespace {
-    static Vector<MountPoint> VFSMounts;
+    Vector<MountPoint>* mountStoragePointer = nullptr;
+
+    Vector<MountPoint>& mountsStorage() {
+        if (mountStoragePointer == nullptr) {
+            mountStoragePointer = new Vector<MountPoint>();
+        }
+
+        return *mountStoragePointer;
+    }
 
     bool isValidMountPath(const string& path) {
         if (path.empty()) return false;
@@ -40,7 +48,7 @@ namespace {
 
 namespace vfs {
     bool init() {
-        VFSMounts.clear();
+        mountsStorage().clear();
         return true;
     }
 
@@ -50,11 +58,15 @@ namespace vfs {
         ASSERT(device != nullptr);
         ASSERT(isValidMountPath(path));
 
-        for (usize i = 0; i < VFSMounts.size(); i++) {
-            if (VFSMounts[i].value().path == path) return false;
+        for (usize i = 0; i < mountsStorage().size(); i++) {
+            if (mountsStorage()[i].value().path == path) {
+                debug::warn("Cannot mount the filesystem because a disk has already been mounted");
+                return false;
+            };
         }
 
         if (!fs->mount(device)) {
+            debug::warn("The filesystem did not allow the mounting of the disk");
             return false;
         }
 
@@ -62,21 +74,21 @@ namespace vfs {
         mountPoint.path = path;
         mountPoint.fs = fs;
 
-        VFSMounts.push(mountPoint);
+        mountsStorage().push(mountPoint);
         return true;
     }
 
     bool unmount(const string& path) {
-        for (usize i = 0; i < VFSMounts.size(); i++) {
-            if (VFSMounts[i].value().path != path) continue;
+        for (usize i = 0; i < mountsStorage().size(); i++) {
+            if (mountsStorage()[i].value().path != path) continue;
 
-            FileSystem* fs = VFSMounts[i].value().fs;
+            FileSystem* fs = mountsStorage()[i].value().fs;
 
             if (fs && !fs->unmount()) {
                 return false;
             }
 
-            VFSMounts.remove(i);
+            mountsStorage().remove(i);
             return true;
         }
 
@@ -87,8 +99,8 @@ namespace vfs {
         FileSystem* best = nullptr;
         usize bestLength = 0;
 
-        for (usize i = 0; i < VFSMounts.size(); i++) {
-            const MountPoint& mountPoint = VFSMounts[i].value();
+        for (usize i = 0; i < mountsStorage().size(); i++) {
+            const MountPoint& mountPoint = mountsStorage()[i].value();
 
             usize length = mountMatchLength(path, mountPoint.path);
 
@@ -106,11 +118,11 @@ namespace vfs {
 
         if (!pathStartsWithMount(path, mountPath)) return path;
 
-        if (path.length() == mountPath.length()) return path;
+        if (path.length() == mountPath.length()) return "/";
 
         string relative;
 
-        for (usize i = mountPath.length(); i < mountPath.length(); i++) {
+        for (usize i = mountPath.length(); i < path.length(); i++) {
             relative.append(path[i].value());
         }
 
@@ -127,12 +139,12 @@ namespace vfs {
         string mounthPath = "/";
 
         usize bestLength = 0;
-        for (usize i = 0; i < VFSMounts.size(); i++) {
-            usize length = mountMatchLength(path, VFSMounts[i].value().path);
+        for (usize i = 0; i < mountsStorage().size(); i++) {
+            usize length = mountMatchLength(path, mountsStorage()[i].value().path);
 
             if (length > bestLength) {
                 bestLength = length;
-                mounthPath = VFSMounts[i].value().path;
+                mounthPath = mountsStorage()[i].value().path;
             }
         }
 
@@ -157,19 +169,19 @@ namespace vfs {
         string mounthPath = "/";
 
         usize bestLength = 0;
-        for (usize i = 0; i < VFSMounts.size(); i++) {
-            usize length = mountMatchLength(path, VFSMounts[i].value().path);
+        for (usize i = 0; i < mountsStorage().size(); i++) {
+            usize length = mountMatchLength(path, mountsStorage()[i].value().path);
 
             if (length > bestLength) {
                 bestLength = length;
-                mounthPath = VFSMounts[i].value().path;
+                mounthPath = mountsStorage()[i].value().path;
             }
         }
 
         string relativePath = relativePathForMount(path, mounthPath);
 
         VFSError error;
-        DirectoryHandle* handle = fs->openDirectory(path, error);
+        DirectoryHandle* handle = fs->openDirectory(relativePath, error);
 
         if (!error.ok()) {
             debug::error("Error while opening directory of type ", error.code);
@@ -186,12 +198,12 @@ namespace vfs {
 
         string mountPath = "/";
         usize bestLength = 0;
-        for (usize i = 0; i < VFSMounts.size(); i++) {
-            usize length = mountMatchLength(path, VFSMounts[i].value().path);
+        for (usize i = 0; i < mountsStorage().size(); i++) {
+            usize length = mountMatchLength(path, mountsStorage()[i].value().path);
 
             if (length > bestLength) {
                 bestLength = length;
-                mountPath = VFSMounts[i].value().path;
+                mountPath = mountsStorage()[i].value().path;
             }
         }
 
@@ -233,12 +245,12 @@ namespace vfs {
         string mountPath = "/";
 
         usize bestLength = 0;
-        for (usize i = 0; i < VFSMounts.size(); i++) {
-            usize length = mountMatchLength(path, VFSMounts[i].value().path);
+        for (usize i = 0; i < mountsStorage().size(); i++) {
+            usize length = mountMatchLength(path, mountsStorage()[i].value().path);
 
             if (length > bestLength) {
                 bestLength = length;
-                mountPath = VFSMounts[i].value().path;
+                mountPath = mountsStorage()[i].value().path;
             }
         }
 
@@ -257,12 +269,12 @@ namespace vfs {
         string mountPath = "/";
 
         usize bestLength = 0;
-        for (usize i = 0; i < VFSMounts.size(); i++) {
-            usize length = mountMatchLength(path, VFSMounts[i].value().path);
+        for (usize i = 0; i < mountsStorage().size(); i++) {
+            usize length = mountMatchLength(path, mountsStorage()[i].value().path);
 
             if (length > bestLength) {
                 bestLength = length;
-                mountPath = VFSMounts[i].value().path;
+                mountPath = mountsStorage()[i].value().path;
             }
         }
 
@@ -281,12 +293,12 @@ namespace vfs {
         string mountPath = "/";
 
         usize bestLength = 0;
-        for (usize i = 0; i < VFSMounts.size(); i++) {
-            usize length = mountMatchLength(path, VFSMounts[i].value().path);
+        for (usize i = 0; i < mountsStorage().size(); i++) {
+            usize length = mountMatchLength(path, mountsStorage()[i].value().path);
 
             if (length > bestLength) {
                 bestLength = length;
-                mountPath = VFSMounts[i].value().path;
+                mountPath = mountsStorage()[i].value().path;
             }
         }
 
@@ -312,19 +324,19 @@ namespace vfs {
         usize bestOldLength = 0;
         usize bestNewLength = 0;
 
-        for (usize i = 0; i < VFSMounts.size(); i++) {
-            usize oldLength = mountMatchLength(oldPath, VFSMounts[i].value().path);
+        for (usize i = 0; i < mountsStorage().size(); i++) {
+            usize oldLength = mountMatchLength(oldPath, mountsStorage()[i].value().path);
 
             if (oldLength > bestOldLength) {
                 bestOldLength = oldLength;
-                oldMountPath = VFSMounts[i].value().path;
+                oldMountPath = mountsStorage()[i].value().path;
             }
 
-            usize newLength = mountMatchLength(newPath, VFSMounts[i].value().path);
+            usize newLength = mountMatchLength(newPath, mountsStorage()[i].value().path);
 
             if (newLength > bestNewLength) {
                 bestNewLength = newLength;
-                newMountPath = VFSMounts[i].value().path;
+                newMountPath = mountsStorage()[i].value().path;
             }
         }
 
@@ -336,6 +348,6 @@ namespace vfs {
     }
 
     Vector<MountPoint> mounts() {
-        return VFSMounts;
+        return mountsStorage();
     }
 }

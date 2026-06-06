@@ -9,4 +9,5 @@ QEMU="$HOME/opt/qemu-custom/bin/qemu-system-x86_64"
     -boot d \
     -m 256M \
     -debugcon stdio \
-    -display cocoa
+    -display cocoa \
+    -drive file=disk.img,format=raw,if=ide,index=0,media=disk

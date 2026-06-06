@@ -5,6 +5,8 @@
 #include "core/regs.h"
 #include "core/systems.h"
 #include "drivers/driver.h"
+#include "fs/fat32.h"
+#include "fs/vfs.h"
 #include "graphics/framebuffer.h"
 #include "io/serial.h"
 #include "kernel/debug.h"
@@ -40,6 +42,18 @@ static volatile uint64_t limine_requests_start_marker[] = LIMINE_REQUESTS_START_
 __attribute__((used, section(".limine_requests_end")))
 static volatile uint64_t limine_requests_end_marker[] = LIMINE_REQUESTS_END_MARKER;
 
+void ls(const string& path) {
+    DirectoryHandle* dir = vfs::openDirectory(path);
+    if (!dir) return;
+
+    DirectoryEntry entry;
+    while (dir->readNext(entry)) {
+        out::println(entry.name, entry.type == VFSNodeType::Directory ? "/" : "");
+    }
+
+    dir->close();
+}
+
 extern "C" [[noreturn]] void _start() {
     if (LIMINE_BASE_REVISION_SUPPORTED(limine_base_revision) == false) {
         while (true) {
@@ -54,6 +68,8 @@ extern "C" [[noreturn]] void _start() {
     drivers::init();
     debug::log("Drivers initialized");
 
+    vfs::mountRoot<FAT32FileSystem>();
+
     Framebuffer framebuffer = Framebuffer::createFromLimineRequest(framebuffer_request);
     out::initFramebufferConsole(framebuffer);
 
@@ -62,12 +78,19 @@ extern "C" [[noreturn]] void _start() {
     out::println("The Avery Kernel");
     out::println("Version Alpha 1 (Development Edition)");
     out::println("Made by Max Van den Eynde in 2026");
+
     while (true) {
         string input = in::getLine("> ");
         if (input == "clear") {
             out::clear();
             continue;
+        } else if (input.startsWith("ls ")) {
+            input.removePrefix("ls ");
+            ls(input);
+        } else {
+            out::setColor(Color::red, Color::black);
+            out::println("Incorrect command, try again");
+            out::setColor(Color::white, Color::black);
         }
-        out::println(input);
     }
 }

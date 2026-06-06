@@ -131,6 +131,7 @@ public:
 
 namespace drivers {
     void init();
+    BlockDevice* firstBlockDevice();
 }
 
 namespace mmio {

@@ -193,3 +193,14 @@ void drivers::init() {
         debug::log("Registered driver ", i, ": ", driver->name());
     }
 }
+
+BlockDevice* drivers::firstBlockDevice() {
+    for (usize i = 0; i < DeviceManager::deviceCount(); i++) {
+        auto* device = DeviceManager::deviceAt(i);
+        if (device && device->type() == DeviceType::Block) {
+            return reinterpret_cast<BlockDevice*>(device);
+        }
+    }
+
+    return nullptr;
+}

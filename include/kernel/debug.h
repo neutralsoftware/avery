@@ -78,8 +78,8 @@ out::setColor(Color::white, Color::blue); \
 #endif
 
 namespace debug {
-    [[noreturn]] void kernelPanic(const char* message, const char* file, int line, const char* function,
-                                  bool hlt = true);
+    void kernelPanic(const char* message, const char* file, int line, const char* function,
+                     bool hlt = true);
     void log(const char* message, LogType logType = LogType::Serial);
     void warn(const char* message, LogType logType = LogType::Serial);
     void error(const char* message, LogType logType = LogType::Serial);
@@ -101,12 +101,7 @@ namespace debug {
     template <typename T>
         requires ByteNumber<T>
     void writeValue(LogType logType, T value) {
-        if constexpr (T(-1) < T(0)) {
-            writeValue(logType, static_cast<i64>(value));
-        }
-        else {
-            writeValue(logType, static_cast<u64>(value));
-        }
+        writeValue(logType, static_cast<u64>(value));
     }
 
     template <typename... Args>
