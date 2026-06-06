@@ -51,12 +51,7 @@ namespace out {
     template <typename T>
         requires ByteNumber<T>
     void print(T num) {
-        if constexpr (T(-1) < T(0)) {
-            printSigned(static_cast<i64>(num));
-        }
-        else {
-            printNumber(static_cast<u64>(num));
-        }
+        printNumber(static_cast<u64>(num));
     }
 
     template <typename... Args>

@@ -26,7 +26,7 @@ namespace {
     class PitDriver final : public Driver {
     public:
         string name() const override {
-            return "pit";
+            return "Programmable Interval Timer - Avery";
         }
 
         bool probe(Device& device) override {

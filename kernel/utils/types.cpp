@@ -205,4 +205,136 @@ extern "C" [[noreturn]] void __cxa_pure_virtual() {
     }
 }
 
+extern "C" void* memset(void* dest, int value, usize count) {
+    auto* p = static_cast<unsigned char*>(dest);
 
+    for (usize i = 0; i < count; i++) {
+        p[i] = static_cast<unsigned char>(value);
+    }
+
+    return dest;
+}
+
+bool string::startsWith(const string& other) const {
+    if (len < other.len) return false;
+
+    for (usize i = 0; i < other.len; i++) {
+        if (data[i] != other.data[i]) return false;
+    }
+
+    return true;
+}
+
+void string::prepend(char c) {
+    reserve(len + 1);
+
+    for (usize i = len; i > 0; i--) {
+        data[i] = data[i - 1];
+    }
+
+    data[0] = c;
+    len++;
+    data[len] = '\0';
+}
+
+void string::prepend(cstring text) {
+    usize textLength = 0;
+
+    while (text[textLength] != '\0') {
+        textLength++;
+    }
+
+    if (textLength == 0) {
+        return;
+    }
+
+    reserve(len + textLength);
+
+    for (usize i = len; i > 0; i--) {
+        data[i + textLength - 1] = data[i - 1];
+    }
+
+    memory::copy(
+        reinterpret_cast<u8*>(data),
+        reinterpret_cast<const u8*>(text),
+        static_cast<int>(textLength)
+    );
+
+    len += textLength;
+    data[len] = '\0';
+}
+
+void string::removePrefix(cstring text) {
+    if (!text || !data)
+        return;
+
+    usize prefixLength = 0;
+    while (text[prefixLength] != '\0')
+        prefixLength++;
+
+    if (prefixLength == 0 || prefixLength > len)
+        return;
+
+    for (usize i = 0; i < prefixLength; i++) {
+        if (data[i] != text[i])
+            return;
+    }
+
+    for (usize i = 0; i <= len - prefixLength; i++)
+        data[i] = data[i + prefixLength];
+
+    len -= prefixLength;
+}
+
+void string::removeSuffix(cstring text) {
+    if (!text || !data)
+        return;
+
+    usize suffixLength = 0;
+    while (text[suffixLength] != '\0')
+        suffixLength++;
+
+    if (suffixLength == 0 || suffixLength > len)
+        return;
+
+    usize start = len - suffixLength;
+
+    for (usize i = 0; i < suffixLength; i++) {
+        if (data[start + i] != text[i])
+            return;
+    }
+
+    data[start] = '\0';
+    len -= suffixLength;
+}
+
+void string::trim() {
+    if (!data || len == 0)
+        return;
+
+    auto isSpace = [](char c)
+    {
+        return c == ' ' ||
+            c == '\n' ||
+            c == '\r' ||
+            c == '\t' ||
+            c == '\v' ||
+            c == '\f';
+    };
+
+    usize start = 0;
+    while (start < len && isSpace(data[start]))
+        start++;
+
+    usize end = len;
+    while (end > start && isSpace(data[end - 1]))
+        end--;
+
+    usize newLength = end - start;
+
+    for (usize i = 0; i < newLength; i++)
+        data[i] = data[start + i];
+
+    data[newLength] = '\0';
+    len = newLength;
+}

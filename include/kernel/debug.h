@@ -101,12 +101,7 @@ namespace debug {
     template <typename T>
         requires ByteNumber<T>
     void writeValue(LogType logType, T value) {
-        if constexpr (T(-1) < T(0)) {
-            writeValue(logType, static_cast<i64>(value));
-        }
-        else {
-            writeValue(logType, static_cast<u64>(value));
-        }
+        writeValue(logType, static_cast<u64>(value));
     }
 
     template <typename... Args>

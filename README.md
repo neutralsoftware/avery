@@ -48,9 +48,9 @@ practices while remaining approachable to contributors and learners alike.
 
 ### Storage
 
-- [ ] ATA driver
-- [ ] Block device layer
-- [ ] VFS
+- [x] ATA driver
+- [x] Block device layer
+- [x] VFS
 - [ ] FAT32
 - [ ] ext2
 - [ ] Read & Write files
