@@ -75,6 +75,8 @@ namespace memory {
         MapResult unmapRange(u64 virtualAddress, usize size);
 
         bool isMapped(u64 virtualAddress) const;
+        bool userRangeReadable(u64 virtualAddress, usize size) const;
+        bool userRangeWritable(u64 virtualAddress, usize size) const;
     };
 }
 

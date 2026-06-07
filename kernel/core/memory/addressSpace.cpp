@@ -196,6 +196,44 @@ namespace memory {
         return MapResult::Ok;
     }
 
+    static bool userRangeHasFlags(u64* pml4, u64 virtualAddress, usize size, u64 requiredFlags) {
+        if (!pml4) {
+            return false;
+        }
+
+        u64 start;
+        u64 end;
+
+        if (!rangeBounds(virtualAddress, size, &start, &end)) {
+            return false;
+        }
+
+        if (!isUserAddressRange(start, end)) {
+            return false;
+        }
+
+        for (u64 address = start; address < end; address += mmio::PageSize) {
+            u64* pt;
+            MapResult result = getLeafTable(pml4, address, false, 0, &pt);
+
+            if (result != MapResult::Ok) {
+                return false;
+            }
+
+            u64 entry = pt[ptIndex(address)];
+
+            if (!present(entry)) {
+                return false;
+            }
+
+            if ((entry & requiredFlags) != requiredFlags) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     static MapResult mapPageInternal(
         u64* pml4,
         u64 virtualAddress,
@@ -502,6 +540,14 @@ namespace memory {
         u64 pte = pt[ptIndex(virtualAddress)];
 
         return present(pte);
+    }
+
+    bool AddressSpace::userRangeReadable(u64 virtualAddress, usize size) const {
+        return userRangeHasFlags(pml4, virtualAddress, size, vmm::FlagUser);
+    }
+
+    bool AddressSpace::userRangeWritable(u64 virtualAddress, usize size) const {
+        return userRangeHasFlags(pml4, virtualAddress, size, vmm::FlagUser | vmm::FlagWritable);
     }
 
     MapResult AddressSpace::unmapPage(u64 virtualAddress) const {

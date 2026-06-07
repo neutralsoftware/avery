@@ -61,8 +61,9 @@ practices while remaining approachable to contributors and learners alike.
 - [x] ELF Loader Phase
 - [x] Create process abstraction
 - [x] Create user mode
-- [ ] System calls
+- [x] System calls
 - [ ] Basic scheduler
+- [ ] Implement actual `syscall` instruction
 - [ ] Create userland: init + shell
 
 ## Roadmap (for Beta)

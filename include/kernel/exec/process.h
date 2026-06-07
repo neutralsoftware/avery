@@ -13,6 +13,8 @@
 #include "../../types.h"
 #include "kernel/memory/virtualMemory.h"
 
+class FileHandle;
+
 struct Executable {
     u64 entry;
     u64 userStackTop;
@@ -36,6 +38,14 @@ namespace process {
     pid allocatePid();
 }
 
+namespace memory {
+    constexpr int ProtectionRead = 1 << 0;
+    constexpr int ProtectionWrite = 1 << 1;
+    constexpr int ProtectionExecute = 1 << 2;
+
+    constexpr int MapAnonymous = 1 << 0;
+}
+
 enum class ProcessState : u8 {
     Created,
     Ready,
@@ -44,9 +54,20 @@ enum class ProcessState : u8 {
     Exited
 };
 
+struct FileDescriptor {
+    int id;
+    FileHandle* handle;
+    bool readable;
+    bool writable;
+    usize pos;
+};
+
 struct Process {
     pid pid;
     ProcessState state;
+    u64 nextMmapBase;
+
+    Vector<FileDescriptor> fileDescriptors;
 
     memory::AddressSpace addressSpace;
     Executable executable;

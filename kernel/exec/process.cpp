@@ -58,6 +58,7 @@ Process* Process::createFromElf(const elf::File& file) {
     process->state = ProcessState::Ready;
     debug::log("Process ", process->pid, " ready: entry ", process->executable.entry, " stack top ",
                process->executable.userStackTop);
+    process->nextMmapBase = 0x0000004000000000;
     return process;
 }
 
