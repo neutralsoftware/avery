@@ -12,6 +12,8 @@
 
 struct limine_memmap_request;
 
+extern "C" void syscall_int80_entry();
+
 namespace core {
     void initSystems(volatile struct limine_memmap_request& request);
 

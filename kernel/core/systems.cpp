@@ -33,6 +33,9 @@ void core::initSystems(volatile struct limine_memmap_request& request) {
     pci::enumerateAndCreateDevices();
     debug::log("Enumerated and created all PCI devices");
 
+    idt::setGate(0x80, reinterpret_cast<u64>(syscall_int80_entry), 0x08, 0xEE);
+    debug::log("Bound interrupt 0x80 to the syscall handler");
+
     asm volatile("sti");
 }
 
