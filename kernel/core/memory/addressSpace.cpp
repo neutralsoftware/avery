@@ -441,6 +441,48 @@ namespace memory {
         return mapNewUserRange(virtualAddress, size, flags);
     }
 
+    MapResult AddressSpace::protectRange(u64 virtualAddress, usize size, u64 flags) {
+        if (!pml4) {
+            debug::error("Address space protect range failed: null pml4 for virtual ", virtualAddress);
+            return MapResult::InvalidArgument;
+        }
+
+        u64 start;
+        u64 end;
+
+        if (!rangeBounds(virtualAddress, size, &start, &end)) {
+            debug::error("Address space protect range failed: invalid bounds virtual ", virtualAddress,
+                         " size ", size);
+            return MapResult::InvalidArgument;
+        }
+
+        debug::log("Address space protect range start ", start, " end ", end, " flags ", flags);
+        for (u64 address = start; address < end; address += mmio::PageSize) {
+            u64* pt;
+            MapResult result = getLeafTable(pml4, address, false, 0, &pt);
+
+            if (result != MapResult::Ok) {
+                debug::error("Address space protect range failed to find leaf for virtual ", address,
+                             " result ", static_cast<u32>(result));
+                return result;
+            }
+
+            usize index = ptIndex(address);
+            u64 entry = pt[index];
+
+            if (!present(entry)) {
+                debug::error("Address space protect range failed: virtual address not mapped ", address);
+                return MapResult::NotMapped;
+            }
+
+            pt[index] = (entry & (AddressMask | OwnedPhysical)) | flags | vmm::FlagPresent;
+            invalidateIfActive(pml4, address);
+        }
+
+        debug::log("Address space protect range complete start ", start, " end ", end);
+        return MapResult::Ok;
+    }
+
     bool AddressSpace::isMapped(u64 virtualAddress) const {
         if (!pml4) {
             return false;

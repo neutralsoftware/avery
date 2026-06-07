@@ -68,6 +68,7 @@ namespace memory {
         MapResult mapRange(u64 virtualAddress, u64 physicalAddress, usize size, u64 flags);
         MapResult mapNewUserRange(u64 virtualAddress, usize size, u64 flags);
         MapResult mapNewUserPage(u64 virtualAddress, usize size, u64 flags);
+        MapResult protectRange(u64 virtualAddress, usize size, u64 flags);
 
         MapResult unmapPage(u64 virtualAddress) const;
         MapResult unmapRange(u64 virtualAddress, usize size);

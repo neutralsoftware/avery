@@ -122,14 +122,14 @@ elf::Result Executable::createAndLoadElf(const elf::File& file, memory::AddressS
 
         usize segmentSize = segmentEnd - segmentStart;
 
-        u64 flags = vmm::FlagUser;
+        u64 finalFlags = vmm::FlagUser;
 
         if (ph->isWritable()) {
-            flags |= vmm::FlagWritable;
+            finalFlags |= vmm::FlagWritable;
         }
 
         if (!ph->isExecutable()) {
-            flags |= vmm::FlagNX;
+            finalFlags |= vmm::FlagNX;
         }
 
         if (ph->virtualAddress + ph->memorySize < ph->virtualAddress) {
@@ -137,9 +137,11 @@ elf::Result Executable::createAndLoadElf(const elf::File& file, memory::AddressS
             return elf::Result::Malformed;
         }
 
+        u64 loadFlags = finalFlags | vmm::FlagWritable;
+
         debug::log("ELF load mapping segment ", i, " start ", segmentStart, " end ", segmentEnd, " size ",
-                   segmentSize, " flags ", flags);
-        auto mapResult = addressSpace.mapNewUserRange(segmentStart, segmentSize, flags);
+                   segmentSize, " flags ", loadFlags);
+        auto mapResult = addressSpace.mapNewUserRange(segmentStart, segmentSize, loadFlags);
 
         if (mapResult != memory::MapResult::Ok) {
             debug::error("ELF load failed: could not map segment ", i, " map result ",
@@ -155,6 +157,14 @@ elf::Result Executable::createAndLoadElf(const elf::File& file, memory::AddressS
                    " bytes ", ph->memorySize - ph->fileSize);
         memory::set(reinterpret_cast<u8*>(ph->virtualAddress + ph->fileSize), static_cast<u8>(0),
                     static_cast<int>(ph->memorySize - ph->fileSize));
+
+        auto protectResult = addressSpace.protectRange(segmentStart, segmentSize, finalFlags);
+
+        if (protectResult != memory::MapResult::Ok) {
+            debug::error("ELF load failed: could not protect segment ", i, " protect result ",
+                         static_cast<u32>(protectResult));
+            return elf::Result::Malformed;
+        }
     }
 
     constexpr usize UserStackSize = 1024 * 1024;

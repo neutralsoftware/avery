@@ -59,8 +59,8 @@ practices while remaining approachable to contributors and learners alike.
 - [x] Read ELF executables
 - [x] Create address space abstraction
 - [x] ELF Loader Phase
-- [ ] Create process abstraction
-- [ ] Create user mode
+- [x] Create process abstraction
+- [x] Create user mode
 - [ ] System calls
 - [ ] Basic scheduler
 - [ ] Create userland: init + shell
