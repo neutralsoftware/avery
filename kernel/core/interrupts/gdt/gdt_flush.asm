@@ -1,6 +1,6 @@
 ;
 ; gdt_flush.asm
-; Created by Maxims Enterprise
+; Created by Max Van den Eynde
 ; in 2026 as part of the Avery project
 ;
 

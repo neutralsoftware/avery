@@ -90,6 +90,125 @@ namespace {
         return true;
     }
 
+    bool isAliasChar(char c) {
+        c = toUpper(c);
+        return (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+    }
+
+    usize lastDotIndex(const string& name) {
+        usize dot = name.length();
+
+        for (usize i = 0; i < name.length(); i++) {
+            if (name[i].value() == '.') {
+                dot = i;
+            }
+        }
+
+        return dot;
+    }
+
+    void makeLFNAlias(const string& name, u8 number, char out[11]) {
+        for (usize i = 0; i < 11; i++) {
+            out[i] = ' ';
+        }
+
+        usize dot = lastDotIndex(name);
+        usize baseEnd = dot == name.length() ? name.length() : dot;
+        usize baseOut = 0;
+        usize maxBase = number < 10 ? 6 : 5;
+
+        for (usize i = 0; i < baseEnd && baseOut < maxBase; i++) {
+            char c = name[i].value();
+
+            if (c == ' ' || c == '.') {
+                continue;
+            }
+
+            out[baseOut++] = isAliasChar(c) ? toUpper(c) : '_';
+        }
+
+        if (baseOut == 0) {
+            out[baseOut++] = '_';
+        }
+
+        while (baseOut < maxBase) {
+            out[baseOut++] = '_';
+        }
+
+        out[baseOut++] = '~';
+
+        if (number >= 10) {
+            out[baseOut++] = static_cast<char>('0' + number / 10);
+        }
+
+        out[baseOut] = static_cast<char>('0' + number % 10);
+
+        if (dot != name.length()) {
+            usize extOut = 0;
+
+            for (usize i = dot + 1; i < name.length() && extOut < 3; i++) {
+                char c = name[i].value();
+
+                if (c == ' ' || c == '.') {
+                    continue;
+                }
+
+                out[8 + extOut] = isAliasChar(c) ? toUpper(c) : '_';
+                extOut++;
+            }
+        }
+    }
+
+    u8 shortNameChecksum(const char name[11]) {
+        u8 sum = 0;
+
+        for (usize i = 0; i < 11; i++) {
+            sum = static_cast<u8>(((sum & 1) ? 0x80 : 0) + (sum >> 1) + static_cast<u8>(name[i]));
+        }
+
+        return sum;
+    }
+
+    u32 lfnEntryCount(const string& name) {
+        return static_cast<u32>((name.length() + 12) / 13);
+    }
+
+    u16 lfnCharAt(const string& name, usize index) {
+        if (index < name.length()) {
+            return static_cast<u8>(name[index].value());
+        }
+
+        if (index == name.length()) {
+            return 0x0000;
+        }
+
+        return 0xFFFF;
+    }
+
+    void fillLFNChars(u16* out, usize count, const string& name, usize& index) {
+        for (usize i = 0; i < count; i++) {
+            out[i] = lfnCharAt(name, index);
+            index++;
+        }
+    }
+
+    fat32::LongDirectoryEntryRaw makeLFNEntry(const string& name, u8 order, u8 checksum) {
+        fat32::LongDirectoryEntryRaw entry{};
+        usize index = static_cast<usize>(order - 1) * 13;
+
+        entry.order = order;
+        entry.attributes = fat32::AttributeLongName;
+        entry.type = 0;
+        entry.checksum = checksum;
+        entry.firstClusterLow = 0;
+
+        fillLFNChars(entry.name1, 5, name, index);
+        fillLFNChars(entry.name2, 6, name, index);
+        fillLFNChars(entry.name3, 2, name, index);
+
+        return entry;
+    }
+
     string shortNameToString(const fat32::DirectoryEntryRaw& entry) {
         char normalName[13];
         usize out = 0;
@@ -752,6 +871,62 @@ bool FAT32FileSystem::findEntry(const string& path, fat32::DirectoryEntryInfo& e
     return false;
 }
 
+bool FAT32FileSystem::shortNameExists(u32 directoryCluster, const char shortName[11]) {
+    u32 size = clusterSize();
+    u8* clusterData = new u8[size];
+    u32 currentCluster = directoryCluster;
+
+    while (true) {
+        if (!readCluster(currentCluster, clusterData)) {
+            delete[] clusterData;
+            return true;
+        }
+
+        auto* entries = reinterpret_cast<fat32::DirectoryEntryRaw*>(clusterData);
+
+        for (usize i = 0; i < size / sizeof(fat32::DirectoryEntryRaw); i++) {
+            u8 first = static_cast<u8>(entries[i].name[0]);
+
+            if (first == 0x00) {
+                delete[] clusterData;
+                return false;
+            }
+
+            if (first == fat32::EntryDeleted || entries[i].attributes == fat32::AttributeLongName) {
+                continue;
+            }
+
+            bool same = true;
+
+            for (usize j = 0; j < 11; j++) {
+                if (entries[i].name[j] != shortName[j]) {
+                    same = false;
+                    break;
+                }
+            }
+
+            if (same) {
+                delete[] clusterData;
+                return true;
+            }
+        }
+
+        u32 next = 0;
+
+        if (!readFATEntry(currentCluster, next)) {
+            delete[] clusterData;
+            return true;
+        }
+
+        if (isEndOfChain(next)) {
+            delete[] clusterData;
+            return false;
+        }
+
+        currentCluster = next;
+    }
+}
+
 bool FAT32FileSystem::writeDirectoryEntry(
     u32 directoryCluster,
     u32 entryOffset,
@@ -853,6 +1028,78 @@ bool FAT32FileSystem::findFreeDirectoryEntry(
     }
 }
 
+bool FAT32FileSystem::findFreeDirectoryEntries(
+    u32 directoryCluster,
+    u32 neededEntries,
+    u32& outEntryCluster,
+    u32& outEntryOffset
+) {
+    if (neededEntries == 0) {
+        return false;
+    }
+
+    u32 size = clusterSize();
+    u8* clusterData = new u8[size];
+    u32 currentCluster = directoryCluster;
+
+    while (true) {
+        if (!readCluster(currentCluster, clusterData)) {
+            delete[] clusterData;
+            return false;
+        }
+
+        auto* entries = reinterpret_cast<fat32::DirectoryEntryRaw*>(clusterData);
+        u32 runStart = 0;
+        u32 runLength = 0;
+
+        for (usize i = 0; i < size / sizeof(fat32::DirectoryEntryRaw); i++) {
+            u8 first = static_cast<u8>(entries[i].name[0]);
+
+            if (first == 0x00 || first == fat32::EntryDeleted) {
+                if (runLength == 0) {
+                    runStart = static_cast<u32>(i);
+                }
+
+                runLength++;
+
+                if (runLength >= neededEntries) {
+                    outEntryCluster = currentCluster;
+                    outEntryOffset = runStart * sizeof(fat32::DirectoryEntryRaw);
+                    delete[] clusterData;
+                    return true;
+                }
+
+                continue;
+            }
+
+            runLength = 0;
+        }
+
+        u32 next = 0;
+
+        if (!readFATEntry(currentCluster, next)) {
+            delete[] clusterData;
+            return false;
+        }
+
+        if (isEndOfChain(next)) {
+            u32 newCluster = 0;
+
+            if (!extendClusterChain(directoryCluster, newCluster)) {
+                delete[] clusterData;
+                return false;
+            }
+
+            outEntryCluster = newCluster;
+            outEntryOffset = 0;
+            delete[] clusterData;
+            return true;
+        }
+
+        currentCluster = next;
+    }
+}
+
 bool FAT32FileSystem::createDirectoryEntry(
     u32 parentDirectoryCluster,
     const string& name,
@@ -860,15 +1107,32 @@ bool FAT32FileSystem::createDirectoryEntry(
     fat32::DirectoryEntryInfo& outEntry
 ) {
     char shortName[11];
+    bool hasShortName = makeShortName(name, shortName);
 
-    if (!makeShortName(name, shortName)) {
-        return false;
+    if (!hasShortName) {
+        bool foundAlias = false;
+
+        for (u8 i = 1; i < 100; i++) {
+            makeLFNAlias(name, i, shortName);
+
+            if (!shortNameExists(parentDirectoryCluster, shortName)) {
+                foundAlias = true;
+                break;
+            }
+        }
+
+        if (!foundAlias) {
+            return false;
+        }
     }
+
+    u32 longEntries = hasShortName ? 0 : lfnEntryCount(name);
+    u32 neededEntries = longEntries + 1;
 
     u32 entryCluster = 0;
     u32 entryOffset = 0;
 
-    if (!findFreeDirectoryEntry(parentDirectoryCluster, entryCluster, entryOffset)) {
+    if (!findFreeDirectoryEntries(parentDirectoryCluster, neededEntries, entryCluster, entryOffset)) {
         return false;
     }
 
@@ -918,7 +1182,55 @@ bool FAT32FileSystem::createDirectoryEntry(
     raw.firstClusterLow = static_cast<u16>(firstCluster & 0xFFFF);
     raw.fileSize = 0;
 
-    if (!writeDirectoryEntry(entryCluster, entryOffset, raw)) {
+    if (longEntries > 0) {
+        u32 size = clusterSize();
+        u8* clusterData = new u8[size];
+
+        if (!readCluster(entryCluster, clusterData)) {
+            delete[] clusterData;
+
+            if (firstCluster >= 2) {
+                freeClusterChain(firstCluster);
+            }
+
+            return false;
+        }
+
+        u8 checksum = shortNameChecksum(shortName);
+
+        for (u32 i = 0; i < longEntries; i++) {
+            u32 order = longEntries - i;
+            fat32::LongDirectoryEntryRaw lfn = makeLFNEntry(name, static_cast<u8>(order), checksum);
+
+            if (i == 0) {
+                lfn.order = static_cast<u8>(lfn.order | 0x40);
+            }
+
+            memory::copy(
+                clusterData + entryOffset + i * sizeof(fat32::DirectoryEntryRaw),
+                reinterpret_cast<const u8*>(&lfn),
+                static_cast<int>(sizeof(fat32::LongDirectoryEntryRaw))
+            );
+        }
+
+        memory::copy(
+            clusterData + entryOffset + longEntries * sizeof(fat32::DirectoryEntryRaw),
+            reinterpret_cast<const u8*>(&raw),
+            static_cast<int>(sizeof(fat32::DirectoryEntryRaw))
+        );
+
+        bool ok = writeCluster(entryCluster, clusterData);
+        delete[] clusterData;
+
+        if (!ok) {
+            if (firstCluster >= 2) {
+                freeClusterChain(firstCluster);
+            }
+
+            return false;
+        }
+    }
+    else if (!writeDirectoryEntry(entryCluster, entryOffset, raw)) {
         if (firstCluster >= 2) {
             freeClusterChain(firstCluster);
         }
@@ -932,8 +1244,8 @@ bool FAT32FileSystem::createDirectoryEntry(
     outEntry.size = 0;
     outEntry.parentDirectoryCluster = parentDirectoryCluster;
     outEntry.directoryEntryCluster = entryCluster;
-    outEntry.directoryEntryOffset = entryOffset;
-    outEntry.directoryEntryIndex = entryOffset / sizeof(fat32::DirectoryEntryRaw);
+    outEntry.directoryEntryOffset = entryOffset + longEntries * sizeof(fat32::DirectoryEntryRaw);
+    outEntry.directoryEntryIndex = outEntry.directoryEntryOffset / sizeof(fat32::DirectoryEntryRaw);
 
     return true;
 }

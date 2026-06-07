@@ -94,7 +94,7 @@ const unsigned char keyboard::esShift[128] =
     0,
 
     '?', 'Z', 'X', 'C', 'V', 'B', 'N',
-    'M', ';', ':', '_',
+    'M', '<', '>', '_',
 
     0,
 

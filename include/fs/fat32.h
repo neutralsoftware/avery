@@ -246,6 +246,7 @@ public:
 
     bool readDirectory(u32 firstCluster, Vector<fat32::DirectoryEntryInfo>& entries);
     bool findEntry(const string& path, fat32::DirectoryEntryInfo& entry);
+    bool shortNameExists(u32 directoryCluster, const char shortName[11]);
 
     bool allocateCluster(u32& outCluster);
     bool freeClusterChain(u32 firstCluster);
@@ -276,6 +277,13 @@ public:
 
     bool findFreeDirectoryEntry(
         u32 directoryCluster,
+        u32& outEntryCluster,
+        u32& outEntryOffset
+    );
+
+    bool findFreeDirectoryEntries(
+        u32 directoryCluster,
+        u32 neededEntries,
         u32& outEntryCluster,
         u32& outEntryOffset
     );

@@ -56,11 +56,12 @@ practices while remaining approachable to contributors and learners alike.
 
 ### Processes
 
-- [ ] Create user mode
-- [ ] Basic scheduler
 - [ ] Read ELF executables
+- [ ] Create process/address-space abstraction
+- [ ] Create user mode
 - [ ] System calls
-- [ ] Create userland (shell + init process)
+- [ ] Basic scheduler
+- [ ] Create userland: init + shell
 
 ## Roadmap (for Beta)
 
