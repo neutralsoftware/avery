@@ -2,3 +2,4 @@
 cmake-build-debug
 .qemu.pid
 disk.img
+build

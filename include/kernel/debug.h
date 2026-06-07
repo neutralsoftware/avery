@@ -31,6 +31,7 @@ __FILE__,                                \
 __LINE__,                                \
 __func__                                 \
 );                                            \
+while (true) {} \
 }                                                 \
 } while (0)
 
