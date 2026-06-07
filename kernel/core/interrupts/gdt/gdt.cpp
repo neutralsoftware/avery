@@ -41,13 +41,13 @@ void gdt::setTSSGate(i32 num, u64 base, u32 limit) {
 
     gdtEntries[num].base_high = (base >> 24) & 0xFF;
 
-    gdtEntries[num + 1].base_low = (base >> 32) & 0xFFFF;
-    gdtEntries[num + 1].base_middle = (base >> 48) & 0xFF;
+    gdtEntries[num + 1].limit_low = (base >> 32) & 0xFFFF;
+    gdtEntries[num + 1].base_low = (base >> 48) & 0xFFFF;
+    gdtEntries[num + 1].base_middle = 0;
     gdtEntries[num + 1].base_high = 0;
 
     gdtEntries[num + 1].granularity = 0;
     gdtEntries[num + 1].access = 0;
-    gdtEntries[num + 1].limit_low = 0;
 }
 
 void core::initGdt() {
