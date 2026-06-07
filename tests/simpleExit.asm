@@ -11,4 +11,4 @@ section .text
 _start:
 	mov rax, 0
 	mov rdi, 42
-	syscall
+	int 0x80

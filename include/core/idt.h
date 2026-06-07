@@ -36,6 +36,7 @@ namespace core {
 
 namespace idt {
     void setGate(u8 num, u64 base, u16 sel, u8 flags);
+    void setGateWithIst(u8 num, u64 base, u16 sel, u8 flags, u8 ist);
 }
 
 

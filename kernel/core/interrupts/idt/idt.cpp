@@ -14,14 +14,18 @@
 IDTEntry idtEntries[256];
 IDTPtr idtp;
 
-void idt::setGate(u8 num, u64 base, u16 sel, u8 flags) {
+void idt::setGateWithIst(u8 num, u64 base, u16 sel, u8 flags, u8 ist) {
     idtEntries[num].offsetLow = (base & 0xFFFF);
     idtEntries[num].selector = sel;
-    idtEntries[num].ist = 0;
+    idtEntries[num].ist = static_cast<u8>(ist & 0x7u);
     idtEntries[num].flags = flags;
     idtEntries[num].offsetMid = (base >> 16) & 0xFFFF;
     idtEntries[num].offsetHigh = (base >> 32) & 0xFFFFFFFF;
     idtEntries[num].zero = 0;
+}
+
+void idt::setGate(u8 num, u64 base, u16 sel, u8 flags) {
+    setGateWithIst(num, base, sel, flags, 0);
 }
 
 void core::initIdt() {
@@ -32,4 +36,3 @@ void core::initIdt() {
 
     idt_load();
 }
-

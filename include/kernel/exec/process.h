@@ -28,7 +28,7 @@ struct Executable {
 using pid = u64;
 
 namespace process {
-    static constexpr u64 UserStackTop = 0x0000800000000000;
+    static constexpr u64 UserStackTop = 0x00007FFFFFFFF000;
 
     pid allocatePid();
 }

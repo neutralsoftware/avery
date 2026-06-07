@@ -33,6 +33,7 @@ namespace vmm {
 
     PageTable* createAddressSpace();
     void switchAddressSpace(PageTable* table);
+    void switchToKernelAddressSpace();
 
     bool mapPage(PageTable* pml4, virtAddr virt, physAddr phys, u64 flags);
     bool unmapPage(PageTable* pml4, virtAddr virt);

@@ -168,6 +168,16 @@ void vmm::switchAddressSpace(PageTable* table) {
     debug::log("Raw VMM address space switch complete");
 }
 
+void vmm::switchToKernelAddressSpace() {
+    if (!kernelPML4) {
+        return;
+    }
+
+    physAddr phys = pmm::virtualToPhysicalHHDM(kernelPML4);
+
+    asm volatile("mov %0, %%cr3" :: "r"(phys) : "memory");
+}
+
 void vmm::init() {
     physAddr cr3;
 

@@ -15,6 +15,10 @@ GDTEntry gdtEntries[7];
 GDTPtr gp;
 TSS tss;
 
+namespace {
+    alignas(16) u8 doubleFaultStack[16 * 1024];
+}
+
 void gdt::setGate(i32 num, u64 base, u64 limit, u8 access, u8 granularity) {
     gdtEntries[num].base_low = (base & 0xFFFF);
     gdtEntries[num].base_middle = (base >> 16) & 0xFF;
@@ -50,6 +54,7 @@ void core::initGdt() {
     memory::set(reinterpret_cast<u8*>(&tss), static_cast<u8>(0), sizeof(TSS));
 
     tss.rsp0 = memory::getKernelStackTop();
+    tss.ist1 = reinterpret_cast<u64>(doubleFaultStack + sizeof(doubleFaultStack));
     tss.ioMapBase = sizeof(TSS);
 
     gp.limit = sizeof(gdtEntries) - 1;

@@ -58,7 +58,7 @@ void core::initIsrs() {
     idt::setGate(5, reinterpret_cast<uptr>(isr::isr5), 0x08, 0x8E);
     idt::setGate(6, reinterpret_cast<uptr>(isr::isr6), 0x08, 0x8E);
     idt::setGate(7, reinterpret_cast<uptr>(isr::isr7), 0x08, 0x8E);
-    idt::setGate(8, reinterpret_cast<uptr>(isr::isr8), 0x08, 0x8E);
+    idt::setGateWithIst(8, reinterpret_cast<uptr>(isr::isr8), 0x08, 0x8E, 1);
     idt::setGate(9, reinterpret_cast<uptr>(isr::isr9), 0x08, 0x8E);
     idt::setGate(10, reinterpret_cast<uptr>(isr::isr10), 0x08, 0x8E);
     idt::setGate(11, reinterpret_cast<uptr>(isr::isr11), 0x08, 0x8E);

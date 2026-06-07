@@ -20,7 +20,7 @@ _start:
 
 	mov rax, 0
 	xor rdi, rdi
-	syscall
+	int 0x80
 
 section .rodata
 message:

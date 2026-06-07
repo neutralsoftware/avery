@@ -12,6 +12,7 @@
 #include "core/isr.h"
 #include "io/serial.h"
 #include "kernel/console.h"
+#include "kernel/memory/virtualMemory.h"
 
 namespace {
     struct LiveRegisters {
@@ -238,6 +239,10 @@ namespace {
 
 void debug::kernelPanic(const char* message, const char* file,
                         int line, const char* function, bool hlt) {
+    writePanicHeader(LogType::Serial, message, file, line, function);
+    writeLiveRegisters(LogType::Serial);
+    vmm::switchToKernelAddressSpace();
+
     out::switchTo(ConsoleOutputMode::Framebuffer);
     out::setColor(Color::white, Color::red);
     out::clear();
@@ -245,14 +250,20 @@ void debug::kernelPanic(const char* message, const char* file,
     writePanicHeader(LogType::Console, message, file, line, function);
     writeLiveRegisters(LogType::Console);
 
-    writePanicHeader(LogType::Serial, message, file, line, function);
-    writeLiveRegisters(LogType::Serial);
-
     finishPanic(hlt);
 }
 
 void debug::kernelPanic(const char* message, const char* file,
                         int line, const char* function, const isr::Registers* registers, bool hlt) {
+    writePanicHeader(LogType::Serial, message, file, line, function);
+    if (registers) {
+        writeSavedRegisters(LogType::Serial, registers);
+    }
+    else {
+        writeLiveRegisters(LogType::Serial);
+    }
+    vmm::switchToKernelAddressSpace();
+
     out::switchTo(ConsoleOutputMode::Framebuffer);
     out::setColor(Color::white, Color::red);
     out::clear();
@@ -263,14 +274,6 @@ void debug::kernelPanic(const char* message, const char* file,
     }
     else {
         writeLiveRegisters(LogType::Console);
-    }
-
-    writePanicHeader(LogType::Serial, message, file, line, function);
-    if (registers) {
-        writeSavedRegisters(LogType::Serial, registers);
-    }
-    else {
-        writeLiveRegisters(LogType::Serial);
     }
 
     finishPanic(hlt);
