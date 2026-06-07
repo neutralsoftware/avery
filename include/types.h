@@ -10,18 +10,34 @@
 #ifndef AVERY_TYPES_H
 #define AVERY_TYPES_H
 
+#define U8_MIN 0
+#define U8_MAX 0xFF
 using u8 = unsigned char;
+#define U16_MIN 0
+#define U16_MAX 0xFFFF
 using u16 = unsigned short;
+#define U32_MIN 0
+#define U32_MAX 0xFFFFFFFF
 using u32 = unsigned int;
+#define U64_MIN 0
+#define U64_MAX 0xFFFFFFFFFFFFFFFFULL
 using u64 = unsigned long long;
 using usize = decltype(sizeof(0));
 using uptr = decltype(sizeof(0));
 using physAddr = uptr;
 using virtAddr = uptr;
 
+#define I8_MIN -128
+#define I8_MAX 127
 using i8 = char;
+#define I16_MIN -32768
+#define I16_MAX 32767
 using i16 = short;
+#define I32_MIN -2147483648
+#define I32_MAX 2147483647
 using i32 = int;
+#define I64_MIN -9223372036854775808
+#define I64_MAX 9223372036854775807
 using i64 = long long;
 
 using cstring = const char*;
