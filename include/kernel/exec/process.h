@@ -25,8 +25,37 @@ struct Executable {
                                         Executable* outExecutable);
 };
 
+using pid = u64;
+
 namespace process {
     static constexpr u64 UserStackTop = 0x0000800000000000;
+
+    pid allocatePid();
 }
+
+enum class ProcessState : u8 {
+    Created,
+    Ready,
+    Running,
+    Blocked,
+    Exited
+};
+
+struct Process {
+    pid pid;
+    ProcessState state;
+
+    memory::AddressSpace addressSpace;
+    Executable executable;
+
+    i32 exitCode;
+
+    static Process* createFromElf(const elf::File& file);
+
+    void destroy();
+    void markReady();
+    void markRunning();
+    void exit(i32 code);
+};
 
 #endif //AVERY_PROCESS_H

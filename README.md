@@ -57,8 +57,8 @@ practices while remaining approachable to contributors and learners alike.
 ### Processes
 
 - [x] Read ELF executables
-- [ ] Create address space abstraction
-- [ ] ELF Loader Phase
+- [x] Create address space abstraction
+- [x] ELF Loader Phase
 - [ ] Create process abstraction
 - [ ] Create user mode
 - [ ] System calls

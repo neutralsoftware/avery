@@ -110,6 +110,10 @@ elf::Result Executable::createAndLoadElf(const elf::File& file, memory::AddressS
             flags |= vmm::FlagNX;
         }
 
+        if (ph->virtualAddress + ph->memorySize < ph->virtualAddress) {
+            return elf::Result::Malformed;
+        }
+
         auto mapResult = addressSpace.mapNewUserRange(segmentStart, segmentSize, flags);
 
         if (mapResult != memory::MapResult::Ok) {
