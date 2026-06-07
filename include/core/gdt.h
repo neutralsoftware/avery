@@ -27,8 +27,27 @@ struct GDTPtr {
     uptr base;
 } __attribute__((packed));
 
+struct TSS {
+    u32 reserved0;
+    u64 rsp0;
+    u64 rsp1;
+    u64 rsp2;
+    u64 reserved1;
+    u64 ist1;
+    u64 ist2;
+    u64 ist3;
+    u64 ist4;
+    u64 ist5;
+    u64 ist6;
+    u64 ist7;
+    u64 reserved2;
+    u16 reserved3;
+    u16 ioMapBase;
+} __attribute__((packed));
+
 // Defined in assembly
 extern "C" void gdt_flush();
+extern "C" void tss_flush();
 
 namespace core {
     void initGdt();
@@ -36,6 +55,7 @@ namespace core {
 
 namespace gdt {
     void setGate(i32 num, u64 base, u64 limit, u8 access, u8 granularity);
+    void setTSSGate(i32 num, u64 base, u32 limit);
 }
 
 #endif //AVERY_GDT_H

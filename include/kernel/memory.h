@@ -13,6 +13,11 @@
 
 struct limine_hhdm_request;
 
+extern "C" {
+extern u8 __kernel_stack_bottom;
+extern u8 __kernel_stack_top;
+}
+
 namespace memory {
     void copy(u8* dest, const u8* src, int count);
 
@@ -98,6 +103,14 @@ namespace memory {
     template <typename T>
     constexpr RemoveReferenceType<T>&& move(T&& value) noexcept {
         return static_cast<RemoveReferenceType<T>&&>(value);
+    }
+
+    u64 getKernelStackTop() {
+        return reinterpret_cast<u64>(&__kernel_stack_top);
+    }
+
+    u64 getKernelStackBottom() {
+        return reinterpret_cast<u64>(&__kernel_stack_bottom);
     }
 }
 

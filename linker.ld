@@ -44,6 +44,11 @@ SECTIONS
     .bss : {
         *(.bss .bss.*)
         *(COMMON)
+
+         . = ALIGN(16)
+         __kernel_stack_bottom = .;
+         . += 64K;
+         __kernel_stack_top = .;
     } :data
 
     /DISCARD/ : {
