@@ -12,9 +12,10 @@
 
 struct limine_memmap_request;
 
-
 namespace core {
     void initSystems(volatile struct limine_memmap_request& request);
+
+    [[noreturn]] void enterUserMode(u64 entry, u64 userStackTop);
 }
 
 #endif //AVERY_SYSTEMS_H

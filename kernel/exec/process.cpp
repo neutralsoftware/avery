@@ -39,7 +39,7 @@ Process* Process::createFromElf(const elf::File& file) {
     auto elfResult = Executable::createAndLoadElf(file, process->addressSpace, &process->executable);
 
     if (elfResult != elf::Result::Ok) {
-        reinterpret_cast<memory::AddressSpace>(process->addressSpace).destroy();
+        process->addressSpace.destroy();
         delete process;
         return nullptr;
     }
@@ -49,7 +49,7 @@ Process* Process::createFromElf(const elf::File& file) {
 }
 
 void Process::destroy() {
-    addressSpace->destroy();
+    addressSpace.destroy();
     state = ProcessState::Exited;
 }
 
