@@ -149,13 +149,23 @@ bool vmm::mapRange(PageTable* pml4, virtAddr virt, physAddr phys, u64 size, u64 
 }
 
 vmm::PageTable* vmm::createAddressSpace() {
-    return newTable();
+    debug::log("Creating raw VMM address space");
+    PageTable* table = newTable();
+    debug::log("Raw VMM address space created: pml4 ", table, " physical ", pmm::virtualToPhysicalHHDM(table));
+    return table;
 }
 
 void vmm::switchAddressSpace(PageTable* table) {
+    if (!table) {
+        debug::error("Raw VMM address space switch failed: null table");
+        return;
+    }
+
     physAddr phys = pmm::virtualToPhysicalHHDM(table);
 
+    debug::log("Raw VMM switching address space to table ", table, " physical ", phys);
     asm volatile("mov %0, %%cr3" :: "r"(phys) : "memory");
+    debug::log("Raw VMM address space switch complete");
 }
 
 void vmm::init() {

@@ -75,47 +75,60 @@ namespace elf {
     }
 
     Result File::validateExecutable() const {
+        debug::log("Validating ELF file");
+
         if (!data || !header) {
+            debug::error("ELF validation failed: missing data or header");
             return Result::InvalidArgument;
         }
 
         if (!isValidMagic(data, size)) {
+            debug::error("ELF validation failed: bad magic");
             return Result::BadMagic;
         }
 
         if (header->ident.elfClass != Class64) {
+            debug::warn("ELF validation failed: unsupported class ", header->ident.elfClass);
             return Result::UnsupportedClass;
         }
 
         if (header->ident.dataEncoding != DataLSB) {
+            debug::warn("ELF validation failed: unsupported endianness ", header->ident.dataEncoding);
             return Result::UnsupportedEndianness;
         }
 
         if (header->ident.identVersion != VersionCurrent) {
+            debug::warn("ELF validation failed: unsupported ident version ", header->ident.identVersion);
             return Result::UnsupportedVersion;
         }
 
         if (header->version != VersionCurrent) {
+            debug::warn("ELF validation failed: unsupported header version ", header->version);
             return Result::UnsupportedVersion;
         }
 
         if (header->type != static_cast<elf64Half>(Type::Exec)) {
+            debug::warn("ELF validation failed: unsupported type ", header->type);
             return Result::UnsupportedType;
         }
 
         if (header->machine != Machinex86_64) {
+            debug::warn("ELF validation failed: unsupported machine ", header->machine);
             return Result::UnsupportedMachine;
         }
 
         if (header->headerSize < sizeof(Header)) {
+            debug::error("ELF validation failed: header too small ", header->headerSize);
             return Result::Malformed;
         }
 
         if (header->programHeaderEntrySize < sizeof(ProgramHeader)) {
+            debug::error("ELF validation failed: program header entry too small ", header->programHeaderEntrySize);
             return Result::Malformed;
         }
 
         if (header->programHeaderCount == 0) {
+            debug::error("ELF validation failed: no program headers");
             return Result::Malformed;
         }
 
@@ -124,28 +137,39 @@ namespace elf {
         usize programHeaderCount = header->programHeaderCount;
 
         if (programHeaderEntrySize != sizeof(ProgramHeader)) {
+            debug::error("ELF validation failed: unexpected program header entry size ", programHeaderEntrySize);
             return Result::Malformed;
         }
 
         if (programHeaderCount > (static_cast<usize>(-1) / programHeaderEntrySize)) {
+            debug::error("ELF validation failed: program header table size overflow");
             return Result::OutOfBounds;
         }
 
         usize programHeaderTableSize = programHeaderEntrySize * programHeaderCount;
 
         if (!rangeInBounds(programHeaderOffset, programHeaderTableSize, size)) {
+            debug::error("ELF validation failed: program header table out of bounds offset ", programHeaderOffset,
+                         " size ", programHeaderTableSize, " file size ", size);
             return Result::OutOfBounds;
         }
+
+        debug::log("ELF header accepted: entry ", header->entry, " program headers ", programHeaderCount);
 
         for (usize i = 0; i < programHeaderCount; i++) {
             const ProgramHeader* ph = getProgramHeader(i);
 
             if (!ph) {
+                debug::error("ELF validation failed: program header ", i, " out of bounds");
                 return Result::OutOfBounds;
             }
 
             if (ph->isLoadable()) {
+                debug::log("ELF loadable segment ", i, " offset ", ph->offset, " vaddr ", ph->virtualAddress,
+                           " file size ", ph->fileSize, " memory size ", ph->memorySize, " flags ", ph->flags);
+
                 if (ph->memorySize < ph->fileSize) {
+                    debug::error("ELF validation failed: segment ", i, " memory size smaller than file size");
                     return Result::Malformed;
                 }
 
@@ -154,28 +178,35 @@ namespace elf {
                     ph->fileSize,
                     size
                 )) {
+                    debug::error("ELF validation failed: segment ", i, " file range out of bounds offset ",
+                                 ph->offset, " size ", ph->fileSize, " file size ", size);
                     return Result::OutOfBounds;
                 }
 
                 if (ph->alignment != 0 && ph->alignment != 1) {
                     if ((ph->virtualAddress % ph->alignment) != (ph->offset % ph->alignment)) {
+                        debug::error("ELF validation failed: segment ", i, " alignment mismatch alignment ",
+                                     ph->alignment);
                         return Result::Malformed;
                     }
                 }
             }
         }
 
+        debug::log("ELF validation succeeded");
         return Result::Ok;
     }
 
     Result File::getLoadInfo(LoadInfo* loadInfo) const {
         if (!loadInfo) {
+            debug::error("ELF load info failed: missing output pointer");
             return Result::InvalidArgument;
         }
 
         Result result = validateExecutable();
 
         if (result != Result::Ok) {
+            debug::error("ELF load info failed: validation result ", static_cast<u32>(result));
             return result;
         }
 
@@ -184,19 +215,26 @@ namespace elf {
             reinterpret_cast<const ProgramHeader*>(data + header->programHeaderOffset);
         loadInfo->programHeaderCount = header->programHeaderCount;
 
+        debug::log("ELF load info ready: entry ", loadInfo->entry, " program headers ",
+                   loadInfo->programHeaderCount);
         return Result::Ok;
     }
 
     Result parse(const u8* data, usize size, File* outFile) {
+        debug::log("Parsing ELF buffer at ", data, " size ", size);
+
         if (!data || !outFile) {
+            debug::error("ELF parse failed: invalid argument data ", data, " out file ", outFile);
             return Result::InvalidArgument;
         }
 
         if (size < sizeof(Header)) {
+            debug::error("ELF parse failed: buffer too small ", size);
             return Result::Malformed;
         }
 
         if (!isValidMagic(data, size)) {
+            debug::error("ELF parse failed: bad magic");
             return Result::BadMagic;
         }
 
@@ -206,6 +244,8 @@ namespace elf {
         outFile->size = size;
         outFile->header = header;
 
+        debug::log("ELF parse created file view: entry ", header->entry, " program headers ",
+                   header->programHeaderCount);
         return outFile->validateExecutable();
     }
 }

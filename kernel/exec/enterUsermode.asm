@@ -26,7 +26,7 @@ enter_usermode_asm:
 	pushfq
 	pop rax
 	or rax, 0x200
-	push prax
+	push rax
 
 	push qword 0x1B
 	push rdi

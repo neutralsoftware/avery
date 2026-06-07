@@ -39,5 +39,6 @@ void core::initSystems(volatile struct limine_memmap_request& request) {
 extern "C" [[noreturn]] void enter_usermode_asm(u64 entry, u64 userStackTop);
 
 void core::enterUserMode(u64 entry, u64 userStackTop) {
+    debug::log("Entering usermode: entry ", entry, " user stack top ", userStackTop);
     enter_usermode_asm(entry, userStackTop);
 }

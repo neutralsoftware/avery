@@ -10,6 +10,7 @@
 #include <kernel/memory/virtualMemory.h>
 
 #include "drivers/driver.h"
+#include "kernel/debug.h"
 #include "kernel/memory/physicalMemory.h"
 
 namespace memory {
@@ -267,38 +268,48 @@ namespace memory {
     }
 
     MapResult AddressSpace::create(AddressSpace* outSpace) {
+        debug::log("Creating address space");
+
         if (!outSpace) {
+            debug::error("Address space creation failed: missing output pointer");
             return MapResult::InvalidArgument;
         }
 
         u64* newPML4 = allocPageTable();
 
         if (!newPML4) {
+            debug::error("Address space creation failed: out of memory allocating PML4");
             return MapResult::OutOfMemory;
         }
 
         u64* kernelPML4 = reinterpret_cast<u64*>(vmm::getKernelPml4());
 
         if (!kernelPML4) {
+            debug::error("Address space creation failed: kernel PML4 is null");
             pmm::freePage(tablePhysical(newPML4));
             return MapResult::InvalidArgument;
         }
 
+        debug::log("Copying kernel half into address space pml4 ", newPML4, " from kernel pml4 ", kernelPML4);
         for (usize i = 256; i < EntryCount; i++) {
             newPML4[i] = kernelPML4[i];
         }
 
         outSpace->pml4 = newPML4;
+        debug::log("Address space created: pml4 ", outSpace->pml4, " physical ", tablePhysical(outSpace->pml4));
         return MapResult::Ok;
     }
 
     void AddressSpace::activate() const {
         if (!pml4) {
+            debug::warn("Tried to activate null address space");
             return;
         }
 
         u64 physical = tablePhysical(pml4);
+        debug::log("Switching address space to pml4 ", pml4, " physical ", physical);
         asm volatile("mov %0, %%cr3" :: "r"(physical) : "memory");
+        debug::log("Address space switch complete: pml4 ", pml4);
     }
 
     MapResult AddressSpace::mapPage(
@@ -307,9 +318,12 @@ namespace memory {
         u64 flags
     ) {
         if (!pml4) {
+            debug::error("Address space map page failed: null pml4 for virtual ", virtualAddress);
             return MapResult::InvalidArgument;
         }
 
+        debug::log("Address space map page virtual ", virtualAddress, " physical ", physicalAddress, " flags ",
+                   flags);
         return mapPageInternal(pml4, virtualAddress, physicalAddress, flags, false);
     }
 
@@ -323,19 +337,24 @@ namespace memory {
         u64 end;
 
         if (!rangeBounds(virtualAddress, size, &start, &end)) {
+            debug::error("Address space map range failed: invalid bounds virtual ", virtualAddress, " size ", size);
             return MapResult::InvalidArgument;
         }
 
         if ((physicalAddress % mmio::PageSize) != 0) {
+            debug::error("Address space map range failed: unaligned physical address ", physicalAddress);
             return MapResult::InvalidArgument;
         }
 
         u64 mappedSize = end - start;
 
         if (physicalAddress > U64_MAX - (mappedSize - mmio::PageSize)) {
+            debug::error("Address space map range failed: physical range overflow");
             return MapResult::InvalidArgument;
         }
 
+        debug::log("Address space map range virtual start ", start, " end ", end, " physical ", physicalAddress,
+                   " flags ", flags);
         for (u64 address = start; address < end; address += mmio::PageSize) {
             MapResult result = mapPage(
                 address,
@@ -344,11 +363,14 @@ namespace memory {
             );
 
             if (result != MapResult::Ok) {
+                debug::error("Address space map range failed at virtual ", address, " result ",
+                             static_cast<u32>(result));
                 unmapRange(start, static_cast<usize>(address - start));
                 return result;
             }
         }
 
+        debug::log("Address space map range complete virtual start ", start, " end ", end);
         return MapResult::Ok;
     }
 
@@ -361,20 +383,27 @@ namespace memory {
         u64 end;
 
         if (!rangeBounds(virtualAddress, size, &start, &end)) {
+            debug::error("Address space map new user range failed: invalid bounds virtual ", virtualAddress,
+                         " size ", size);
             return MapResult::InvalidArgument;
         }
 
         if (!isUserAddressRange(start, end)) {
+            debug::error("Address space map new user range failed: range outside user space start ", start,
+                         " end ", end);
             return MapResult::InvalidArgument;
         }
 
+        debug::log("Address space map new user range start ", start, " end ", end, " flags ", flags);
         for (u64 address = start; address < end; address += mmio::PageSize) {
             u64 physical = pmm::allocPage();
 
             if (!physical) {
+                debug::error("Address space map new user range failed: out of memory at virtual ", address);
                 return MapResult::OutOfMemory;
             }
 
+            debug::log("Address space allocated user page virtual ", address, " physical ", physical);
             zeroPage(reinterpret_cast<u64*>(pmm::physicalToVirtual(physical)));
 
             MapResult result = mapPageInternal(
@@ -386,12 +415,15 @@ namespace memory {
             );
 
             if (result != MapResult::Ok) {
+                debug::error("Address space map new user range failed at virtual ", address, " result ",
+                             static_cast<u32>(result));
                 pmm::freePage(physical);
                 unmapRange(start, static_cast<usize>(address - start));
                 return result;
             }
         }
 
+        debug::log("Address space map new user range complete start ", start, " end ", end);
         return MapResult::Ok;
     }
 
@@ -401,9 +433,11 @@ namespace memory {
         u64 flags
     ) {
         if (size > static_cast<usize>(mmio::PageSize)) {
+            debug::error("Address space map new user page failed: size too large ", size);
             return MapResult::InvalidArgument;
         }
 
+        debug::log("Address space map new user page virtual ", virtualAddress, " size ", size, " flags ", flags);
         return mapNewUserRange(virtualAddress, size, flags);
     }
 
@@ -430,10 +464,12 @@ namespace memory {
 
     MapResult AddressSpace::unmapPage(u64 virtualAddress) const {
         if (!pml4) {
+            debug::error("Address space unmap page failed: null pml4 for virtual ", virtualAddress);
             return MapResult::InvalidArgument;
         }
 
         if ((virtualAddress % mmio::PageSize) != 0) {
+            debug::error("Address space unmap page failed: unaligned virtual address ", virtualAddress);
             return MapResult::InvalidArgument;
         }
 
@@ -441,6 +477,8 @@ namespace memory {
         MapResult result = getLeafTable(pml4, virtualAddress, false, 0, &pt);
 
         if (result != MapResult::Ok) {
+            debug::warn("Address space unmap page failed to find leaf for virtual ", virtualAddress, " result ",
+                        static_cast<u32>(result));
             return result;
         }
 
@@ -448,9 +486,11 @@ namespace memory {
         u64 entry = pt[index];
 
         if (!present(entry)) {
+            debug::warn("Address space unmap page failed: virtual address not mapped ", virtualAddress);
             return MapResult::NotMapped;
         }
 
+        debug::log("Address space unmapping page virtual ", virtualAddress, " entry ", entry);
         freeLeafIfOwned(entry);
         pt[index] = 0;
 
@@ -464,25 +504,33 @@ namespace memory {
         u64 end;
 
         if (!rangeBounds(virtualAddress, size, &start, &end)) {
+            debug::error("Address space unmap range failed: invalid bounds virtual ", virtualAddress, " size ",
+                         size);
             return MapResult::InvalidArgument;
         }
 
+        debug::log("Address space unmap range start ", start, " end ", end);
         for (u64 address = start; address < end; address += mmio::PageSize) {
             MapResult result = unmapPage(address);
 
             if (result != MapResult::Ok) {
+                debug::error("Address space unmap range failed at virtual ", address, " result ",
+                             static_cast<u32>(result));
                 return result;
             }
         }
 
+        debug::log("Address space unmap range complete start ", start, " end ", end);
         return MapResult::Ok;
     }
 
     void AddressSpace::destroy() {
         if (!pml4) {
+            debug::warn("Tried to destroy null address space");
             return;
         }
 
+        debug::log("Destroying address space pml4 ", pml4);
         for (usize i = 0; i < 256; i++) {
             u64 entry = pml4[i];
 
@@ -496,5 +544,6 @@ namespace memory {
 
         pmm::freePage(tablePhysical(pml4));
         pml4 = nullptr;
+        debug::log("Address space destroyed");
     }
 }

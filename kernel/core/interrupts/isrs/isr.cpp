@@ -86,9 +86,7 @@ void core::initIsrs() {
 
 extern "C" void fault_handler(isr::Registers* regs) {
     if (regs->int_no < 32) {
-        out::print("Panic with error code: ");
-        out::printHex(regs->err_code);
-        PANICNOHLT(exception_messages[regs->int_no]);
+        debug::kernelPanic(exception_messages[regs->int_no], __FILE__, __LINE__, __func__, regs, false);
         out::println("");
         debug::stackTrace(LogType::Console);
         debug::stackTrace(LogType::Serial);

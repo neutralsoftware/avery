@@ -105,11 +105,11 @@ namespace memory {
         return static_cast<RemoveReferenceType<T>&&>(value);
     }
 
-    u64 getKernelStackTop() {
+    inline u64 getKernelStackTop() {
         return reinterpret_cast<u64>(&__kernel_stack_top);
     }
 
-    u64 getKernelStackBottom() {
+    inline u64 getKernelStackBottom() {
         return reinterpret_cast<u64>(&__kernel_stack_bottom);
     }
 }

@@ -11,6 +11,8 @@
 #include "io/serial.h"
 #include "kernel/debug.h"
 #include "kernel/memory.h"
+#include "kernel/exec/elf.h"
+#include "kernel/exec/process.h"
 
 __attribute__((used, section(".limine_requests")))
 static volatile uint64_t limine_base_revision[] = LIMINE_BASE_REVISION(6);
@@ -401,6 +403,37 @@ namespace {
             parseQuotedText(command, text);
             out::println(text);
             return;
+        }
+
+        if (command.startsWith("exec")) {
+            command.removePrefix("exec ");
+
+            string path = normalizePath(currentDirectory, command);
+            debug::log("Exec command requested path ", path);
+            if (!vfs::isDirectory(path)) {
+                FileHandle* handle = vfs::open(path);
+                debug::log("Exec opened file ", path, " size ", handle->size());
+                auto data = new u8[handle->size()];
+                handle->read(data, handle->size());
+                elf::File elfFile;
+
+                auto parseResult = elf::parse(data, handle->size(), &elfFile);
+
+                debug::log("Exec ELF parse result ", static_cast<u32>(parseResult));
+                ASSERT(parseResult == elf::Result::Ok);
+
+                Process* process = Process::createFromElf(elfFile);
+
+                if (!process) {
+                    debug::error("Exec failed to create process for path ", path);
+                    return;
+                }
+
+                debug::log("Exec switching to process ", process->pid, " entry ", process->executable.entry,
+                           " stack top ", process->executable.userStackTop, " address space ",
+                           process->addressSpace.pml4);
+                core::enterUserMode(process->executable.entry, process->executable.userStackTop);
+            }
         }
 
         out::setColor(Color::red, Color::black);

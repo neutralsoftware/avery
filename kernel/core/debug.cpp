@@ -9,35 +9,271 @@
 
 #include "../../include/kernel/debug.h"
 
+#include "core/isr.h"
 #include "io/serial.h"
 #include "kernel/console.h"
 
+namespace {
+    struct LiveRegisters {
+        u64 r15;
+        u64 r14;
+        u64 r13;
+        u64 r12;
+        u64 r11;
+        u64 r10;
+        u64 r9;
+        u64 r8;
+        u64 rsi;
+        u64 rdi;
+        u64 rbp;
+        u64 rdx;
+        u64 rcx;
+        u64 rbx;
+        u64 rax;
+        u64 rip;
+        u64 cs;
+        u64 rflags;
+        u64 rsp;
+        u64 ss;
+    };
+
+    u64 readCr0() {
+        u64 value;
+        asm volatile("mov %%cr0, %0" : "=r"(value));
+        return value;
+    }
+
+    u64 readCr2() {
+        u64 value;
+        asm volatile("mov %%cr2, %0" : "=r"(value));
+        return value;
+    }
+
+    u64 readCr3() {
+        u64 value;
+        asm volatile("mov %%cr3, %0" : "=r"(value));
+        return value;
+    }
+
+    u64 readCr4() {
+        u64 value;
+        asm volatile("mov %%cr4, %0" : "=r"(value));
+        return value;
+    }
+
+    u64 readRsp() {
+        u64 value;
+        asm volatile("mov %%rsp, %0" : "=r"(value));
+        return value;
+    }
+
+    u64 readRbp() {
+        u64 value;
+        asm volatile("mov %%rbp, %0" : "=r"(value));
+        return value;
+    }
+
+    u64 readCs() {
+        u16 value;
+        asm volatile("mov %%cs, %0" : "=r"(value));
+        return value;
+    }
+
+    u64 readSs() {
+        u16 value;
+        asm volatile("mov %%ss, %0" : "=r"(value));
+        return value;
+    }
+
+    u64 readRflags() {
+        u64 value;
+        asm volatile("pushfq; pop %0" : "=r"(value));
+        return value;
+    }
+
+    LiveRegisters captureLiveRegisters() {
+        LiveRegisters registers{};
+
+        asm volatile("mov %%r15, %0" : "=r"(registers.r15));
+        asm volatile("mov %%r14, %0" : "=r"(registers.r14));
+        asm volatile("mov %%r13, %0" : "=r"(registers.r13));
+        asm volatile("mov %%r12, %0" : "=r"(registers.r12));
+        asm volatile("mov %%r11, %0" : "=r"(registers.r11));
+        asm volatile("mov %%r10, %0" : "=r"(registers.r10));
+        asm volatile("mov %%r9, %0" : "=r"(registers.r9));
+        asm volatile("mov %%r8, %0" : "=r"(registers.r8));
+        asm volatile("mov %%rsi, %0" : "=r"(registers.rsi));
+        asm volatile("mov %%rdi, %0" : "=r"(registers.rdi));
+        asm volatile("mov %%rdx, %0" : "=r"(registers.rdx));
+        asm volatile("mov %%rcx, %0" : "=r"(registers.rcx));
+        asm volatile("mov %%rbx, %0" : "=r"(registers.rbx));
+        asm volatile("mov %%rax, %0" : "=r"(registers.rax));
+
+        registers.rbp = readRbp();
+        registers.rsp = readRsp();
+        registers.rip = reinterpret_cast<u64>(__builtin_return_address(0));
+        registers.cs = readCs();
+        registers.ss = readSs();
+        registers.rflags = readRflags();
+
+        return registers;
+    }
+
+    void writeHex(LogType logType, u64 value) {
+        if (logType == LogType::Serial) {
+            io::serialWriteHex(value);
+            return;
+        }
+
+        out::printHex(value);
+    }
+
+    void writeRegister(LogType logType, cstring name, u64 value) {
+        debug::writeValue(logType, name);
+        debug::writeValue(logType, ": ");
+        writeHex(logType, value);
+        debug::writeLineEnd(logType);
+    }
+
+    void writePanicHeader(LogType logType, const char* message, const char* file, int line, const char* function) {
+        debug::writeValue(logType, "");
+        debug::writeLineEnd(logType);
+        debug::writeValue(logType, "The Avery Kernel panicked!");
+        debug::writeLineEnd(logType);
+        debug::writeValue(logType, "Avery entered a bad execution state that resulted in an unrecoverable state.");
+        debug::writeLineEnd(logType);
+        debug::writeValue(logType, "Restart your computer and contact the developers if the problem keeps happening");
+        debug::writeLineEnd(logType);
+        debug::writeValue(logType, "=================");
+        debug::writeLineEnd(logType);
+        debug::writeValue(logType, "Crash Information:");
+        debug::writeLineEnd(logType);
+        debug::writeValue(logType, message);
+        debug::writeLineEnd(logType);
+        debug::writeLineEnd(logType);
+        debug::writeValue(logType, "At file: ");
+        debug::writeValue(logType, file);
+        debug::writeLineEnd(logType);
+        debug::writeValue(logType, "At line: ");
+        debug::writeValue(logType, static_cast<u64>(line));
+        debug::writeLineEnd(logType);
+        debug::writeValue(logType, "At function: ");
+        debug::writeValue(logType, function);
+        debug::writeLineEnd(logType);
+    }
+
+    void writeControlRegisters(LogType logType) {
+        writeRegister(logType, "CR0", readCr0());
+        writeRegister(logType, "CR2", readCr2());
+        writeRegister(logType, "CR3", readCr3());
+        writeRegister(logType, "CR4", readCr4());
+    }
+
+    void writeLiveRegisters(LogType logType) {
+        LiveRegisters registers = captureLiveRegisters();
+
+        debug::writeValue(logType, "Registers:");
+        debug::writeLineEnd(logType);
+        writeRegister(logType, "RAX", registers.rax);
+        writeRegister(logType, "RBX", registers.rbx);
+        writeRegister(logType, "RCX", registers.rcx);
+        writeRegister(logType, "RDX", registers.rdx);
+        writeRegister(logType, "RSI", registers.rsi);
+        writeRegister(logType, "RDI", registers.rdi);
+        writeRegister(logType, "RBP", registers.rbp);
+        writeRegister(logType, "RSP", registers.rsp);
+        writeRegister(logType, "R8", registers.r8);
+        writeRegister(logType, "R9", registers.r9);
+        writeRegister(logType, "R10", registers.r10);
+        writeRegister(logType, "R11", registers.r11);
+        writeRegister(logType, "R12", registers.r12);
+        writeRegister(logType, "R13", registers.r13);
+        writeRegister(logType, "R14", registers.r14);
+        writeRegister(logType, "R15", registers.r15);
+        writeRegister(logType, "RIP", registers.rip);
+        writeRegister(logType, "CS", registers.cs);
+        writeRegister(logType, "RFLAGS", registers.rflags);
+        writeRegister(logType, "SS", registers.ss);
+        writeControlRegisters(logType);
+    }
+
+    void writeSavedRegisters(LogType logType, const isr::Registers* registers) {
+        debug::writeValue(logType, "Registers:");
+        debug::writeLineEnd(logType);
+        writeRegister(logType, "RAX", registers->rax);
+        writeRegister(logType, "RBX", registers->rbx);
+        writeRegister(logType, "RCX", registers->rcx);
+        writeRegister(logType, "RDX", registers->rdx);
+        writeRegister(logType, "RSI", registers->rsi);
+        writeRegister(logType, "RDI", registers->rdi);
+        writeRegister(logType, "RBP", registers->rbp);
+        writeRegister(logType, "RSP", registers->rsp);
+        writeRegister(logType, "R8", registers->r8);
+        writeRegister(logType, "R9", registers->r9);
+        writeRegister(logType, "R10", registers->r10);
+        writeRegister(logType, "R11", registers->r11);
+        writeRegister(logType, "R12", registers->r12);
+        writeRegister(logType, "R13", registers->r13);
+        writeRegister(logType, "R14", registers->r14);
+        writeRegister(logType, "R15", registers->r15);
+        writeRegister(logType, "RIP", registers->rip);
+        writeRegister(logType, "CS", registers->cs);
+        writeRegister(logType, "RFLAGS", registers->rflags);
+        writeRegister(logType, "SS", registers->ss);
+        writeRegister(logType, "INT", registers->int_no);
+        writeRegister(logType, "ERR", registers->err_code);
+        writeControlRegisters(logType);
+    }
+
+    void finishPanic(bool hlt) {
+        asm volatile("cli");
+
+        if (hlt) {
+            while (true) {
+                asm volatile("hlt");
+            }
+        }
+    }
+}
+
 void debug::kernelPanic(const char* message, const char* file,
-                        [[maybe_unused]] int line, const char* function, bool hlt) {
+                        int line, const char* function, bool hlt) {
+    out::switchTo(ConsoleOutputMode::Framebuffer);
     out::setColor(Color::white, Color::red);
     out::clear();
 
-    out::println("");
-    out::println("The Avery Kernel panicked!");
-    out::println("Avery entered a bad execution state that resulted in an unrecoverable state.");
-    out::println("Restart your computer and contact the developers if the problem keeps happening");
-    out::println("=================");
-    out::println("Crash Information:");
-    out::println(message);
-    out::println("");
-    out::print("At file: ");
-    out::println(file);
-    out::println("");
-    out::print("At function: ");
-    out::println(function);
+    writePanicHeader(LogType::Console, message, file, line, function);
+    writeLiveRegisters(LogType::Console);
 
-    asm volatile("cli");
+    writePanicHeader(LogType::Serial, message, file, line, function);
+    writeLiveRegisters(LogType::Serial);
 
-    if (hlt) {
-        while (true) {
-            asm volatile("hlt");
-        }
+    finishPanic(hlt);
+}
+
+void debug::kernelPanic(const char* message, const char* file,
+                        int line, const char* function, const isr::Registers* registers, bool hlt) {
+    out::switchTo(ConsoleOutputMode::Framebuffer);
+    out::setColor(Color::white, Color::red);
+    out::clear();
+
+    writePanicHeader(LogType::Console, message, file, line, function);
+    if (registers) {
+        writeSavedRegisters(LogType::Console, registers);
     }
+    else {
+        writeLiveRegisters(LogType::Console);
+    }
+
+    writePanicHeader(LogType::Serial, message, file, line, function);
+    if (registers) {
+        writeSavedRegisters(LogType::Serial, registers);
+    }
+    else {
+        writeLiveRegisters(LogType::Serial);
+    }
+
+    finishPanic(hlt);
 }
 
 void debug::log(const char* message, LogType logType) {
@@ -182,5 +418,3 @@ void debug::stackTrace(LogType type) {
         frame = frame->rbp;
     }
 }
-
-

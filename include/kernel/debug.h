@@ -19,6 +19,10 @@ enum class LogType {
     Serial,
 };
 
+namespace isr {
+    struct Registers;
+}
+
 #define PANIC(msg) debug::kernelPanic(msg, __FILE__, __LINE__, __func__)
 #define PANICNOHLT(msg) debug::kernelPanic(msg, __FILE__, __LINE__, __func__, false)
 
@@ -81,6 +85,8 @@ out::setColor(Color::white, Color::blue); \
 namespace debug {
     void kernelPanic(const char* message, const char* file, int line, const char* function,
                      bool hlt = true);
+    void kernelPanic(const char* message, const char* file, int line, const char* function,
+                     const isr::Registers* registers, bool hlt = true);
     void log(const char* message, LogType logType = LogType::Serial);
     void warn(const char* message, LogType logType = LogType::Serial);
     void error(const char* message, LogType logType = LogType::Serial);
