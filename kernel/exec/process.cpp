@@ -15,6 +15,8 @@
 namespace process {
     static pid nextPid = 1;
 
+    Process* currentProcess = nullptr;
+
     pid allocatePid() {
         pid allocatedPid = nextPid++;
         debug::log("Allocated process pid ", allocatedPid);

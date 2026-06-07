@@ -31,7 +31,7 @@ struct Process;
 
 namespace process {
     static constexpr u64 UserStackTop = 0x00007FFFFFFFF000;
-    static Process* currentProcess = nullptr;
+    extern Process* currentProcess;
 
     pid allocatePid();
 }

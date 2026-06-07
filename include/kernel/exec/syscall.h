@@ -11,12 +11,14 @@
 #define AVERY_SYSCALL_H
 #include "../../types.h"
 
-extern "C" u64 syscall_handle(u64 number, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5);
+extern "C" u64 syscall_handler(u64 number, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4, u64 arg5);
 
 namespace syscall {
     constexpr u64 Exit = 0x00;
+    constexpr u64 Write = 0x01;
 
     void exit(i32 code);
+    usize write(i32 fd, const void* buffer, usize count);
 }
 
 #endif //AVERY_SYSCALL_H

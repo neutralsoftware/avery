@@ -16,7 +16,7 @@ _start:
 	mov rdi, 1
 	mov rsi, message
 	mov rdx, message_len
-	syscall
+	int 0x80
 
 	mov rax, 0
 	xor rdi, rdi
