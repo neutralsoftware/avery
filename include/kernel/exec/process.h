@@ -11,6 +11,7 @@
 #define AVERY_PROCESS_H
 #include "elf.h"
 #include "../../types.h"
+#include "kernel/memory/virtualMemory.h"
 
 struct Executable {
     u64 entry;
@@ -20,6 +21,8 @@ struct Executable {
     u64 imageEnd;
 
     static elf::Result fromElf(const elf::File& file, Executable* outExecutable);
+    static elf::Result createAndLoadElf(const elf::File& file, memory::AddressSpace& addressSpace,
+                                        Executable* outExecutable);
 };
 
 namespace process {

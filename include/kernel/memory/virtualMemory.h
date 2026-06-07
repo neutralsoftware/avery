@@ -47,4 +47,33 @@ namespace vmm {
     PageTable* getKernelPml4();
 }
 
+namespace memory {
+    enum class MapResult : u32 {
+        Ok = 0,
+        InvalidArgument,
+        AlreadyMapped,
+        OutOfMemory,
+        NotMapped
+    };
+
+    struct AddressSpace {
+        u64* pml4;
+
+        static MapResult create(AddressSpace* outSpace);
+        void destroy();
+
+        void activate() const;
+
+        MapResult mapPage(u64 virtualAddress, u64 physicalAddress, u64 flags);
+        MapResult mapRange(u64 virtualAddress, u64 physicalAddress, usize size, u64 flags);
+        MapResult mapNewUserRange(u64 virtualAddress, usize size, u64 flags);
+        MapResult mapNewUserPage(u64 virtualAddress, usize size, u64 flags);
+
+        MapResult unmapPage(u64 virtualAddress) const;
+        MapResult unmapRange(u64 virtualAddress, usize size);
+
+        bool isMapped(u64 virtualAddress) const;
+    };
+}
+
 #endif //AVERY_VIRTUALMEMORY_H
