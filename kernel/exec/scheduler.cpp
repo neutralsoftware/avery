@@ -14,6 +14,7 @@
 
 Queue<Thread*>* scheduler::readyQueue = nullptr;
 Thread* scheduler::current = nullptr;
+u64 scheduler::ticks = 0;
 
 void scheduler::init() {
     readyQueue = new Queue<Thread*>();
@@ -25,12 +26,15 @@ void scheduler::addThread(Thread* thread) {
 }
 
 Thread* scheduler::pickNext() {
-    if (readyQueue->empty()) {
-        return nullptr;
+    while (!readyQueue->empty()) {
+        Thread* thread = readyQueue->pop().value();
+
+        if (thread->state == ThreadState::Ready) {
+            return thread;
+        }
     }
 
-    Thread* next = readyQueue->pop().value();
-    return next;
+    return nullptr;
 }
 
 void scheduler::yield() {
@@ -65,3 +69,12 @@ void scheduler::yield() {
     }
 }
 
+static constexpr usize quantumTicks = 5;
+
+void scheduler::onTimerTick() {
+    ticks++;
+
+    if (ticks % quantumTicks == 0) {
+        yield();
+    }
+}

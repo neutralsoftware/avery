@@ -109,6 +109,7 @@ elf::Result Executable::createAndLoadElf(const elf::File& file, memory::AddressS
 
         if (!ph) {
             debug::error("ELF load failed: program header ", i, " out of bounds");
+            vmm::switchToKernelAddressSpace();
             return elf::Result::OutOfBounds;
         }
 
@@ -134,6 +135,7 @@ elf::Result Executable::createAndLoadElf(const elf::File& file, memory::AddressS
 
         if (ph->virtualAddress + ph->memorySize < ph->virtualAddress) {
             debug::error("ELF load failed: segment ", i, " virtual range overflow");
+            vmm::switchToKernelAddressSpace();
             return elf::Result::Malformed;
         }
 
@@ -146,6 +148,7 @@ elf::Result Executable::createAndLoadElf(const elf::File& file, memory::AddressS
         if (mapResult != memory::MapResult::Ok) {
             debug::error("ELF load failed: could not map segment ", i, " map result ",
                          static_cast<u32>(mapResult));
+            vmm::switchToKernelAddressSpace();
             return elf::Result::Malformed;
         }
 
@@ -163,6 +166,7 @@ elf::Result Executable::createAndLoadElf(const elf::File& file, memory::AddressS
         if (protectResult != memory::MapResult::Ok) {
             debug::error("ELF load failed: could not protect segment ", i, " protect result ",
                          static_cast<u32>(protectResult));
+            vmm::switchToKernelAddressSpace();
             return elf::Result::Malformed;
         }
     }
@@ -176,10 +180,12 @@ elf::Result Executable::createAndLoadElf(const elf::File& file, memory::AddressS
 
     if (stackResult != memory::MapResult::Ok) {
         debug::error("ELF load failed: could not map user stack result ", static_cast<u32>(stackResult));
+        vmm::switchToKernelAddressSpace();
         return elf::Result::Malformed;
     }
 
     debug::log("ELF executable loaded: entry ", outExecutable->entry, " stack top ",
                outExecutable->userStackTop);
+    vmm::switchToKernelAddressSpace();
     return elf::Result::Ok;
 }

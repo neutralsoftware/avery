@@ -51,7 +51,14 @@ extern "C" u64 syscall_handler(u64 number, u64 arg0, u64 arg1, u64 arg2, u64 arg
 }
 
 void syscall::exit(i32 code) {
-    process::currentProcess->exit(code);
+    Thread* old = scheduler::current;
+
+    old->process->exit(code);
+    old->state = ThreadState::Dead;
+
+    scheduler::current = nullptr;
+
+    yield();
 
     while (true) {
         asm volatile("cli; hlt");
@@ -188,7 +195,7 @@ u64 syscall::getPid() {
 }
 
 void syscall::yield() {
-    PANIC("Yield is still in implementation");
+    scheduler::yield();
 }
 
 u64 syscall::exec(cstring, cstring []) {

@@ -11,6 +11,7 @@
 
 #include "core/irq.h"
 #include "io/io.h"
+#include "kernel/exec/process.h"
 
 volatile u64 timerTicks;
 
@@ -55,6 +56,8 @@ namespace {
 
 extern "C" void time_handler([[maybe_unused]] isr::Registers* regs) {
     timerTicks = timerTicks + 1;
+
+    scheduler::onTimerTick();
 }
 
 void core::initPit() {

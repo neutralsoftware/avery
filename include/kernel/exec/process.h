@@ -130,6 +130,7 @@ namespace thread {
 namespace scheduler {
     extern Queue<Thread*>* readyQueue;
     extern Thread* current;
+    extern u64 ticks;
 
     inline Thread* currentThread() {
         return current;
@@ -139,6 +140,7 @@ namespace scheduler {
     Thread* pickNext();
     void yield();
     void init();
+    void onTimerTick();
 }
 
 extern "C" [[noreturn]] void threadStartTrampoline();

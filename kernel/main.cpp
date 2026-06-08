@@ -411,6 +411,11 @@ namespace {
             string path = normalizePath(currentDirectory, command);
             if (!vfs::isDirectory(path)) {
                 FileHandle* handle = vfs::open(path);
+                if (!handle) {
+                    out::println("exec: could not open file");
+                    return;
+                }
+
                 auto data = new u8[handle->size()];
                 handle->read(data, handle->size());
                 elf::File elfFile;
@@ -426,8 +431,14 @@ namespace {
                 }
 
                 scheduler::addThread(process->mainThread);
-                scheduler::yield();
+                out::println("Added to scheduler queue");
+                return;
             }
+        }
+
+        if (command.startsWith("run")) {
+            scheduler::yield();
+            return;
         }
 
         out::setColor(Color::red, Color::black);
