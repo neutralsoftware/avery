@@ -50,6 +50,14 @@ void gdt::setTSSGate(i32 num, u64 base, u32 limit) {
     gdtEntries[num + 1].access = 0;
 }
 
+void gdt::setTssRsp0(u64 rsp0) {
+    tss.rsp0 = rsp0;
+}
+
+u64 gdt::getTssRsp0() {
+    return tss.rsp0;
+}
+
 void core::initGdt() {
     memory::set(reinterpret_cast<u8*>(&tss), static_cast<u8>(0), sizeof(TSS));
 

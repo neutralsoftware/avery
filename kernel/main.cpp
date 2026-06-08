@@ -425,8 +425,8 @@ namespace {
                     return;
                 }
 
-                process::currentProcess = process;
-                core::enterUserMode(process->executable.entry, process->executable.userStackTop);
+                scheduler::addThread(process->mainThread);
+                scheduler::yield();
             }
         }
 

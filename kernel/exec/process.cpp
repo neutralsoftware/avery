@@ -59,6 +59,17 @@ Process* Process::createFromElf(const elf::File& file) {
     debug::log("Process ", process->pid, " ready: entry ", process->executable.entry, " stack top ",
                process->executable.userStackTop);
     process->nextMmapBase = 0x0000004000000000;
+
+    process->mainThread = Thread::create(process);
+
+    if (!process->mainThread) {
+        debug::error("Process ", process->pid, " could not create main thread");
+        delete process;
+        return nullptr;
+    }
+
+    process->mainThread->state = ThreadState::Ready;
+
     return process;
 }
 

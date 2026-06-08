@@ -56,6 +56,8 @@ namespace core {
 namespace gdt {
     void setGate(i32 num, u64 base, u64 limit, u8 access, u8 granularity);
     void setTSSGate(i32 num, u64 base, u32 limit);
+    void setTssRsp0(u64 rsp0);
+    u64 getTssRsp0();
 }
 
 #endif //AVERY_GDT_H

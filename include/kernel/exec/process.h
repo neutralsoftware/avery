@@ -28,6 +28,7 @@ struct Executable {
 };
 
 using pid = u64;
+using tid = u64;
 
 struct Process;
 
@@ -62,12 +63,16 @@ struct FileDescriptor {
     usize pos;
 };
 
+struct Thread;
+
 struct Process {
     pid pid;
     ProcessState state;
     u64 nextMmapBase;
 
     Vector<FileDescriptor> fileDescriptors;
+
+    Thread* mainThread;
 
     memory::AddressSpace addressSpace;
     Executable executable;
@@ -81,5 +86,62 @@ struct Process {
     void markRunning();
     void exit(i32 code);
 };
+
+enum class ThreadState : u8 {
+    Created,
+    Ready,
+    Running,
+    Blocked,
+    Dead
+};
+
+struct CpuContext {
+    u64 r15;
+    u64 r14;
+    u64 r13;
+    u64 r12;
+    u64 rbx;
+    u64 rbp;
+    u64 rsp;
+    u64 rip;
+};
+
+struct Thread {
+    tid id;
+    Process* process;
+    ThreadState state;
+
+    CpuContext context;
+
+    u64 kernelStackBottom;
+    u64 kernelStackTop;
+
+    static Thread* create(Process* process);
+    void destroy();
+};
+
+namespace thread {
+    static constexpr usize KernelStackSize = 16 * 1024;
+    tid allocateTid();
+
+    extern "C" void switchContext(CpuContext* oldContext, CpuContext* newContext);
+}
+
+namespace scheduler {
+    extern Queue<Thread*>* readyQueue;
+    extern Thread* current;
+
+    inline Thread* currentThread() {
+        return current;
+    }
+
+    void addThread(Thread* thread);
+    Thread* pickNext();
+    void yield();
+    void init();
+}
+
+extern "C" [[noreturn]] void threadStartTrampoline();
+
 
 #endif //AVERY_PROCESS_H

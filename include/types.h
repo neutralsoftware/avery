@@ -322,7 +322,9 @@ public:
 
     void pushBack(const T& value) {
         Node* newNode = new Node(value);
-        ASSERT(newNode != nullptr);
+        if (newNode == nullptr) {
+            return;
+        }
 
         if (empty()) {
             head = tail = newNode;
@@ -339,7 +341,6 @@ public:
 
     void pushFront(const T& value) {
         Node* newNode = new Node(value);
-        ASSERT(newNode != nullptr);
 
         if (empty()) {
             head = tail = newNode;
@@ -393,12 +394,10 @@ public:
     }
 
     T& front() {
-        ASSERT(head != nullptr);
         return head->value;
     }
 
     T& back() {
-        ASSERT(tail != nullptr);
         return tail->value;
     }
 
