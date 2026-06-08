@@ -62,7 +62,7 @@ practices while remaining approachable to contributors and learners alike.
 - [x] Create process abstraction
 - [x] Create user mode
 - [x] System calls
-- [ ] Basic scheduler
+- [x] Basic scheduler
 - [ ] Implement actual `syscall` instruction
 - [ ] Create userland: init + shell
 
